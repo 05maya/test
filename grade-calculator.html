@@ -2,7 +2,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: one sheet-like table, inputs inline, a summary strip of 최종등급 above it */
+/* Layout: summary strip, the sheet (editable subject headers), then the 국영수과/국영수사 환산 table */
 :root {
   --bg: #f6f7f9;
   --surface: #ffffff;
@@ -13,22 +13,24 @@
   --accent: #2f5bd3;
   --accent-soft: #e6ecfb;
   --calc: #f3f5f9;
+  --off: #a0a8b6;
   --font-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #12151c; --surface: #1a1f29; --fg: #e5e9f0; --muted: #98a2b3; --line: #2e3542;
-  --head: #222936; --accent: #7fa2ff; --accent-soft: #24304d; --calc: #1f2530; color-scheme: dark } }
+  --head: #222936; --accent: #7fa2ff; --accent-soft: #24304d; --calc: #1f2530; --off: #5d6677; color-scheme: dark } }
 :root[data-theme="dark"] {
   --bg: #12151c; --surface: #1a1f29; --fg: #e5e9f0; --muted: #98a2b3; --line: #2e3542;
-  --head: #222936; --accent: #7fa2ff; --accent-soft: #24304d; --calc: #1f2530; color-scheme: dark }
+  --head: #222936; --accent: #7fa2ff; --accent-soft: #24304d; --calc: #1f2530; --off: #5d6677; color-scheme: dark }
 
 body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 14px; }
-.wrap { max-width: 1040px; margin: 0 auto; padding-inline: 16px; padding-block: 28px 48px; display: grid; gap: 20px; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: 16px; padding-block: 28px 48px; display: grid; gap: 20px; }
 h1 { font-size: 1.5rem; margin: 0; text-wrap: balance; }
-.sub { color: var(--muted); margin: 4px 0 0; line-height: 1.6; max-width: 65ch; }
+h2 { font-size: 1.1rem; margin: 8px 0 0; }
+.sub { color: var(--muted); margin: 4px 0 0; line-height: 1.6; max-width: 70ch; }
 
-.summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+.summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
 .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
 .tile .k { font-size: 12px; color: var(--muted); letter-spacing: .02em; }
 .tile .v { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 500; margin-top: 4px; font-variant-numeric: tabular-nums; }
@@ -36,9 +38,12 @@ h1 { font-size: 1.5rem; margin: 0; text-wrap: balance; }
 .tile.total .v { color: var(--accent); }
 
 .sheet { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
-table { border-collapse: collapse; width: 100%; min-width: 760px; font-variant-numeric: tabular-nums; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+#sheet { min-width: 1040px; }
+#combo { min-width: 560px; }
 th, td { border: 1px solid var(--line); padding: 6px 8px; text-align: center; white-space: nowrap; }
 th { background: var(--head); font-weight: 500; }
+th.subj { padding: 4px; vertical-align: top; }
 td.lbl { background: var(--head); }
 td.calc { background: var(--calc); font-family: var(--font-mono); }
 td.final { font-family: var(--font-mono); font-weight: 500; color: var(--accent); }
@@ -47,12 +52,20 @@ tr.subtotal td, tr.grand td { border-top: 2px solid var(--muted); }
 tr.grand td { font-weight: 700; }
 td[title] { cursor: help; }
 td.in { padding: 2px; }
-input { width: 100%; min-width: 48px; box-sizing: border-box; font: inherit; font-family: var(--font-mono);
-  text-align: center; border: 1px solid transparent; border-radius: 4px; padding: 5px 4px;
-  background: transparent; color: var(--fg); }
-input:hover { border-color: var(--line); }
-input:focus { outline: 2px solid var(--accent); outline-offset: -1px; background: var(--surface); }
+col.off, td.off, th.off { color: var(--off); }
+input, select { font: inherit; color: var(--fg); }
+td input { width: 100%; min-width: 44px; box-sizing: border-box; font-family: var(--font-mono);
+  text-align: center; border: 1px solid transparent; border-radius: 4px; padding: 5px 4px; background: transparent; }
+th input { width: 100%; min-width: 64px; box-sizing: border-box; text-align: center; font-weight: 500;
+  border: 1px dashed var(--line); border-radius: 4px; padding: 4px; background: var(--surface); }
+th input::placeholder { color: var(--off); font-weight: 400; }
+th select { width: 100%; margin-top: 4px; font-size: 12px; border: 1px solid var(--line); border-radius: 4px;
+  padding: 2px; background: var(--surface); color: var(--muted); }
+td input:hover { border-color: var(--line); }
+input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: -1px; background: var(--surface); }
 
+.groups { display: flex; flex-wrap: wrap; gap: 6px 16px; color: var(--muted); font-size: 13px; }
+.groups b { color: var(--fg); font-weight: 500; }
 .foot { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; color: var(--muted); font-size: 13px; }
 .formula { font-family: var(--font-mono); color: var(--fg); background: var(--surface); border: 1px solid var(--line);
   border-radius: 6px; padding: 8px 10px; min-height: 1.4em; overflow-x: auto; white-space: nowrap; }
@@ -64,7 +77,7 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 <div class="wrap">
   <header>
     <h1>내신 등급 계산기</h1>
-    <p class="sub">엑셀 파일(pma_261002_1.xlsx)의 수식을 그대로 옮겼습니다. 단위수와 등급 칸을 고치면 단위*등급, 합계, 최종등급이 바로 다시 계산됩니다. 계산된 칸에 마우스를 올리거나 누르면 원본 엑셀 수식이 보입니다.</p>
+    <p class="sub">엑셀 파일(pma_261002_1.xlsx)의 수식을 그대로 옮기고 오른쪽에 과목 3칸을 더했습니다. 과목명은 언제든 바꿀 수 있고(예: 사회2, 과학2), 이름에 맞춰 교과 구분이 자동으로 정해집니다. 계산된 칸을 누르면 수식이 보입니다.</p>
   </header>
 
   <section class="summary" id="summary" aria-label="최종등급 요약"></section>
@@ -73,16 +86,25 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   <div class="formula" id="formula" aria-live="polite">계산된 칸을 누르면 수식이 여기에 표시됩니다.</div>
 
+  <section style="display:grid;gap:10px">
+    <h2>국영수과 · 국영수사 내신 환산</h2>
+    <p class="sub">해당 교과에 속한 과목만 골라 Σ(단위수×등급) ÷ Σ단위수 로 계산합니다. 전과목 열은 위 표의 최종등급과 같은 방식입니다.</p>
+    <div class="groups" id="groups"></div>
+    <div class="sheet"><table id="combo"></table></div>
+  </section>
+
   <div class="foot">
     <button type="button" id="reset">예시 값으로 되돌리기</button>
-    <span>값은 이 브라우저에만 저장됩니다.</span>
+    <span>입력한 값과 과목명은 이 브라우저에만 저장됩니다.</span>
   </div>
 </div>
 
 <script>
-// ---- 원본 엑셀 셀 (Sheet1 B2:K24) ----
-const COLS = ["B","C","D","E","F","G","H","I","J","K"];
-const SUBJ = ["E","F","G","H","I"];
+// ---- 시트 구조: E~I 기존 과목, J~L 추가 과목, M 합계, N 최종등급 ----
+const SUBJ = ["E","F","G","H","I","J","K","L"];
+const TOT = "M", FIN = "N";
+const CATS = [["국","국어"],["영","영어"],["수","수학"],["사","사회"],["과","과학"],["x","제외"]];
+const DEFAULT_NAMES = {E:"국어",F:"영어",G:"수학",H:"사회",I:"과학",J:"",K:"",L:""};
 const DEFAULTS = {
   E3:3,F3:4,G3:3,H3:5,I3:3,  E4:2,F4:3,G4:4,H4:2,I4:3,
   E6:3,F6:4,G6:3,H6:5,I6:3,  E7:1,F7:4,G7:2,H7:1,I7:5,
@@ -91,40 +113,60 @@ const DEFAULTS = {
   E17:3,F17:4,G17:3,H17:5,I17:3, E18:2,F18:1,G18:1,H18:2,I18:4,
   E20:3,F20:4,G20:3,H20:5,I20:3, E21:2,F21:3,G21:2,H21:2,I21:2
 };
-const F = {}; // formulas, exactly as in the workbook
 const years = [{name:"1학년", top:3}, {name:"2학년", top:10}, {name:"3학년", top:17}];
+const sems = y => [[y.name + " 1학기", y.top], [y.name + " 2학기", y.top + 3]];
+
+// 과목명으로 교과 추정
+function guessCat(name) {
+  const n = (name || "").replace(/\s/g, "");
+  if (!n) return "x";
+  if (/국어|문학|독서|화법|작문|언어|매체/.test(n)) return "국";
+  if (/영어|英/.test(n)) return "영";
+  if (/수학|미적분|확률|통계|기하|대수/.test(n)) return "수";
+  if (/과학|물리|화학|생명|지구|생물/.test(n)) return "과";
+  if (/사회|한국사|역사|세계사|동아시아|지리|윤리|정치|법|경제|사문/.test(n)) return "사";
+  return "x";
+}
+
+// ---- 엑셀과 같은 수식 (열만 8과목으로 확장) ----
+const F = {};
+const sumOf = (cols, row, mul) => cols.map(c => mul ? `${c}${row}*${c}${row+1}` : c + row).join("+");
 for (const y of years) {
-  for (const s of [y.top, y.top + 3]) {          // 1학기, 2학기 블록: 단위수 s, 등급 s+1, 단위*등급 s+2
+  for (const [, s] of sems(y)) {
     for (const c of SUBJ) F[c + (s+2)] = `=${c}${s}*${c}${s+1}`;
-    F["J"+s] = `=SUM(E${s}:I${s})`;
-    F["J"+(s+2)] = `=SUM(E${s+2}:I${s+2})`;
-    F["K"+s] = `=J${s+2}/J${s}`;
+    F[TOT + s] = `=SUM(E${s}:L${s})`;
+    F[TOT + (s+2)] = `=SUM(E${s+2}:L${s+2})`;
+    F[FIN + s] = `=${TOT}${s+2}/${TOT}${s}`;
   }
   const a = y.top, b = y.top + 3, r = y.top + 6;
   for (const c of SUBJ) F[c+r] = `=(${c}${a}*${c}${a+1}+${c}${b}*${c}${b+1})/2`;
-  F["K"+r] = `=(J${b+2}+J${a+2})/(J${b}+J${a})`;
+  F[FIN + r] = `=(${TOT}${b+2}+${TOT}${a+2})/(${TOT}${b}+${TOT}${a})`;
 }
-for (const c of SUBJ) F[c+"24"] = `=(${c}3*${c}4+${c}6*${c}7+${c}10*${c}11+${c}13*${c}14+${c}17*${c}18+${c}20*${c}21)/6`;
-F.K24 = "=(J5+J8+J12+J15+J19+J22)/(J3+J6+J10+J13+J17+J20)";
+for (const c of SUBJ) F[c+"24"] = `=(${[3,6,10,13,17,20].map(r => `${c}${r}*${c}${r+1}`).join("+")})/6`;
+F[FIN+"24"] = `=(${[5,8,12,15,19,22].map(r => TOT + r).join("+")})/(${[3,6,10,13,17,20].map(r => TOT + r).join("+")})`;
 
-// 셀 표시 형식 (엑셀 number_format 기준)
+const fmtGrade = v => isFinite(v) ? v.toFixed(2) : "-";
 const fmt = (ref, v) => {
+  if (ref[0] === FIN) return fmtGrade(v);
   if (!isFinite(v)) return "#DIV/0!";
-  const col = ref[0], row = +ref.slice(1);
-  if (col === "K") return v.toFixed(2);
-  if (row === 9 || row === 16 || row === 23 || row === 24) return v.toFixed(1);
+  const row = +ref.slice(1);
+  if ([9,16,23,24].includes(row)) return v.toFixed(1);
   return Number.isInteger(v) ? String(v) : v.toFixed(2);
 };
 
-// ---- 작은 수식 엔진: SUM(범위), 셀 참조, 사칙연산 ----
-let values = {};
-function load() {
-  try { const s = JSON.parse(localStorage.getItem("pma-grades") || "null"); if (s) return {...DEFAULTS, ...s}; } catch (e) {}
-  return {...DEFAULTS};
+// ---- 저장 ----
+function loadState() {
+  let s = null;
+  try { s = JSON.parse(localStorage.getItem("pma-grades-v2") || "null"); } catch (e) {}
+  const names = {...DEFAULT_NAMES, ...(s && s.names)};
+  const cats = {};
+  for (const c of SUBJ) cats[c] = (s && s.cats && s.cats[c]) || guessCat(names[c]);
+  return { inputs: {...DEFAULTS, ...(s && s.inputs)}, names, cats };
 }
-function save() { try { localStorage.setItem("pma-grades", JSON.stringify(inputs)); } catch (e) {} }
-let inputs = load();
+function save() { try { localStorage.setItem("pma-grades-v2", JSON.stringify(state)); } catch (e) {} }
+let state = loadState();
 
+// ---- 수식 엔진: SUM(범위), 셀 참조, 사칙연산 ----
 function expandRange(a, b) {
   const [c1, r1] = [a.charCodeAt(0), +a.slice(1)], [c2, r2] = [b.charCodeAt(0), +b.slice(1)];
   const out = [];
@@ -132,108 +174,168 @@ function expandRange(a, b) {
   return out;
 }
 const cache = {};
+function evalFormula(f) {
+  const expr = f.slice(1)
+    .replace(/SUM\(([A-Z]\d+):([A-Z]\d+)\)/g, (_, a, b) => "(" + expandRange(a, b).join("+") + ")")
+    .replace(/\b([A-Z]\d+)\b/g, 'v("$1")');
+  return Function("v", "return " + expr)(evalCell);
+}
 function evalCell(ref) {
   if (ref in cache) return cache[ref];
   let v;
-  if (F[ref]) {
-    const expr = F[ref].slice(1)
-      .replace(/SUM\(([A-Z]\d+):([A-Z]\d+)\)/g, (_, a, b) => "(" + expandRange(a, b).map(r => `v("${r}")`).join("+") + ")")
-      .replace(/(?<!")\b([A-Z]\d+)\b(?!")/g, 'v("$1")');
-    v = Function("v", "return " + expr)(evalCell);
-  } else {
-    const n = parseFloat(inputs[ref]);
-    v = isFinite(n) ? n : 0;   // 빈 칸은 엑셀처럼 0
-  }
+  if (F[ref]) v = evalFormula(F[ref]);
+  else { const n = parseFloat(state.inputs[ref]); v = isFinite(n) ? n : 0; }  // 빈 칸은 0
   return cache[ref] = v;
 }
-function recalc() {
-  for (const k in cache) delete cache[k];
-  for (const ref in F) {
-    const el = document.getElementById("c-" + ref);
-    if (el) el.textContent = fmt(ref, evalCell(ref));
-  }
-  renderSummary();
-}
 
-// ---- 표 그리기 (원본 병합 셀 유지) ----
-const table = document.getElementById("sheet");
-function cell(tag, text, attrs = {}) {
-  const el = document.createElement(tag);
-  if (text != null) el.textContent = text;
-  for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
-  return el;
+// ---- 화면 ----
+const $ = id => document.getElementById(id);
+function el(tag, text, attrs = {}) {
+  const e = document.createElement(tag);
+  if (text != null) e.textContent = text;
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  return e;
 }
-function calcCell(ref, cls = "calc", attrs = {}) {
-  const td = cell("td", "", {id: "c-" + ref, class: cls, title: `${ref}  ${F[ref]}`, tabindex: "0", ...attrs});
-  return td;
-}
-function build() {
-  const head = document.createElement("tr");
-  ["학년","학기","과목","국어","영어","수학","사회","과학","합계","최종등급"].forEach(t => head.append(cell("th", t, {scope: "col"})));
-  table.append(head);
+const calcCell = (ref, cls = "calc", attrs = {}) =>
+  el("td", "", {id: "c-" + ref, class: cls + " col-" + ref[0], title: `${ref}  ${F[ref]}`, tabindex: "0", ...attrs});
+const subjLabel = c => state.names[c] || `(${c}열)`;
+
+function buildSheet() {
+  const t = $("sheet");
+  const head = el("tr");
+  ["학년","학기","구분"].forEach(x => head.append(el("th", x, {scope: "col"})));
+  for (const c of SUBJ) {
+    const th = el("th", null, {class: "subj col-" + c, scope: "col"});
+    const name = el("input", null, {id: "n-" + c, type: "text", placeholder: "과목명", "aria-label": `${c}열 과목명`});
+    name.value = state.names[c];
+    const cat = el("select", null, {id: "g-" + c, "aria-label": `${c}열 교과 구분`});
+    for (const [v, label] of CATS) cat.append(el("option", label, {value: v}));
+    cat.value = state.cats[c];
+    name.addEventListener("input", () => {
+      state.names[c] = name.value;
+      state.cats[c] = cat.value = guessCat(name.value);
+      save(); recalc();
+    });
+    cat.addEventListener("change", () => { state.cats[c] = cat.value; save(); recalc(); });
+    th.append(name, cat);
+    head.append(th);
+  }
+  head.append(el("th", "합계", {scope: "col"}), el("th", "최종등급", {scope: "col"}));
+  t.append(head);
 
   for (const y of years) {
     let first = true;
-    for (const [si, s] of [[0, y.top], [1, y.top + 3]].map(x => x)) {
-      const sem = si === 0 ? "1학기" : "2학기";
+    sems(y).forEach(([semName, s], si) => {
       ["단위수", "등급", "단위*등급"].forEach((lab, i) => {
-        const r = s + i, tr = document.createElement("tr");
-        if (first) { tr.append(cell("th", y.name, {rowspan: 7, scope: "rowgroup"})); first = false; }
-        if (i === 0) tr.append(cell("td", sem, {rowspan: 3, class: "lbl"}));
-        tr.append(cell("td", lab, {class: "lbl"}));
+        const r = s + i, tr = el("tr");
+        if (first) { tr.append(el("th", y.name, {rowspan: 7, scope: "rowgroup"})); first = false; }
+        if (i === 0) tr.append(el("td", si ? "2학기" : "1학기", {rowspan: 3, class: "lbl"}));
+        tr.append(el("td", lab, {class: "lbl"}));
         for (const c of SUBJ) {
           const ref = c + r;
           if (i < 2) {
-            const td = cell("td", null, {class: "in"});
-            const inp = cell("input", null, {id: "i-" + ref, type: "number", inputmode: "decimal", step: "any",
-              "aria-label": `${y.name} ${sem} ${lab} ${ref}`});
-            inp.value = inputs[ref];
-            inp.addEventListener("input", () => { inputs[ref] = inp.value; save(); recalc(); });
+            const td = el("td", null, {class: "in col-" + c});
+            const inp = el("input", null, {id: "i-" + ref, type: "number", inputmode: "decimal", step: "any",
+              "aria-label": `${semName} ${lab} ${ref}`});
+            inp.value = state.inputs[ref] ?? "";
+            inp.addEventListener("input", () => { state.inputs[ref] = inp.value; save(); recalc(); });
             td.append(inp); tr.append(td);
           } else tr.append(calcCell(ref));
         }
-        tr.append(i === 1 ? cell("td", "", {class: "calc"}) : calcCell("J" + r));
-        if (i === 0) tr.append(calcCell("K" + s, "final", {rowspan: 3}));
-        table.append(tr);
+        tr.append(i === 1 ? el("td", "", {class: "calc"}) : calcCell(TOT + r));
+        if (i === 0) tr.append(calcCell(FIN + s, "final", {rowspan: 3}));
+        t.append(tr);
       });
-    }
-    const r = y.top + 6, tr = document.createElement("tr");
-    tr.className = "subtotal";
-    tr.append(cell("td", "단위*등급 소계", {colspan: 2, class: "lbl"}));
+    });
+    const r = y.top + 6, tr = el("tr", null, {class: "subtotal"});
+    tr.append(el("td", "단위*등급 소계", {colspan: 2, class: "lbl"}));
     for (const c of SUBJ) tr.append(calcCell(c + r, "sub"));
-    tr.append(cell("td", ""));
-    tr.append(calcCell("K" + r, "final"));
-    table.append(tr);
+    tr.append(el("td", ""), calcCell(FIN + r, "final"));
+    t.append(tr);
   }
-  const g = document.createElement("tr");
-  g.className = "grand";
-  g.append(cell("td", "단위*등급 합계", {colspan: 3, class: "lbl"}));
+  const g = el("tr", null, {class: "grand"});
+  g.append(el("td", "단위*등급 합계", {colspan: 3, class: "lbl"}));
   for (const c of SUBJ) g.append(calcCell(c + "24", "sub"));
-  g.append(cell("td", ""));
-  g.append(calcCell("K24", "final"));
-  table.append(g);
+  g.append(el("td", ""), calcCell(FIN + "24", "final"));
+  t.append(g);
+}
 
-  const box = document.getElementById("formula");
-  table.addEventListener("click", e => { const td = e.target.closest("td[title]"); if (td) box.textContent = td.title; });
-  table.addEventListener("focusin", e => { const td = e.target.closest("td[title]"); if (td) box.textContent = td.title; });
+// ---- 국영수과 / 국영수사 ----
+const COMBOS = [["국영수과", ["국","영","수","과"]], ["국영수사", ["국","영","수","사"]]];
+const comboCols = cats => SUBJ.filter(c => cats.includes(state.cats[c]));
+function comboFormula(cols, semRows) {
+  if (!cols.length) return null;
+  const num = semRows.map(s => sumOf(cols, s + 2)).join("+");
+  const den = semRows.map(s => sumOf(cols, s)).join("+");
+  return `=(${num})/(${den})`;
+}
+function comboRows() {
+  const rows = [];
+  for (const y of years) {
+    for (const [n, s] of sems(y)) rows.push({label: n, rows: [s], fin: FIN + s});
+    rows.push({label: y.name + " 전체", rows: [y.top, y.top + 3], fin: FIN + (y.top + 6), sub: true});
+  }
+  rows.push({label: "3개년 전체", rows: [3,6,10,13,17,20], fin: FIN + "24", grand: true});
+  return rows;
+}
+function renderCombo() {
+  const t = $("combo");
+  const head = el("tr");
+  ["구간", ...COMBOS.map(x => x[0]), "전과목"].forEach(x => head.append(el("th", x, {scope: "col"})));
+  const body = [head];
+  for (const r of comboRows()) {
+    const tr = el("tr", null, {class: r.grand ? "grand" : r.sub ? "subtotal" : ""});
+    tr.append(el("td", r.label, {class: "lbl"}));
+    for (const [name, cats] of COMBOS) {
+      const f = comboFormula(comboCols(cats), r.rows);
+      const v = f ? evalFormula(f) : NaN;
+      tr.append(el("td", fmtGrade(v), {class: (r.sub || r.grand) ? "final" : "calc", tabindex: "0",
+        title: f ? `${r.label} ${name}  ${f}` : `${name}: 해당 과목 없음`}));
+    }
+    tr.append(el("td", fmtGrade(evalCell(r.fin)), {class: "calc", tabindex: "0", title: `${r.fin}  ${F[r.fin]}`}));
+    body.push(tr);
+  }
+  t.replaceChildren(...body);
+
+  $("groups").replaceChildren(...COMBOS.map(([name, cats]) => {
+    const s = el("span");
+    s.append(el("b", name + ": "), document.createTextNode(comboCols(cats).map(subjLabel).join(", ") || "해당 과목 없음"));
+    return s;
+  }));
 }
 
 function renderSummary() {
-  const s = document.getElementById("summary");
-  const items = [["1학년 최종등급","K9"],["2학년 최종등급","K16"],["3학년 최종등급","K23"],["전체 최종등급","K24"]];
-  s.replaceChildren(...items.map(([k, ref]) => {
-    const d = cell("div", null, {class: "tile" + (ref === "K24" ? " total" : ""), title: `${ref}  ${F[ref]}`});
-    d.append(cell("div", k, {class: "k"}), cell("div", fmt(ref, evalCell(ref)), {class: "v"}));
+  const tiles = [["1학년", evalCell("N9")], ["2학년", evalCell("N16")], ["3학년", evalCell("N23")],
+    ["전과목", evalCell("N24"), true],
+    ...COMBOS.map(([name, cats]) => { const f = comboFormula(comboCols(cats), [3,6,10,13,17,20]); return [name, f ? evalFormula(f) : NaN, true]; })];
+  $("summary").replaceChildren(...tiles.map(([k, v, hi]) => {
+    const d = el("div", null, {class: "tile" + (hi ? " total" : "")});
+    d.append(el("div", k + (hi ? " 3개년" : " 최종등급"), {class: "k"}), el("div", fmtGrade(v), {class: "v"}));
     return d;
   }));
 }
 
-document.getElementById("reset").addEventListener("click", () => {
-  inputs = {...DEFAULTS};
-  for (const ref in DEFAULTS) document.getElementById("i-" + ref).value = DEFAULTS[ref];
-  save(); recalc();
+function recalc() {
+  for (const k in cache) delete cache[k];
+  for (const ref in F) { const e = $("c-" + ref); if (e) e.textContent = fmt(ref, evalCell(ref)); }
+  for (const c of SUBJ) document.querySelectorAll(".col-" + c).forEach(e => e.classList.toggle("off", state.cats[c] === "x"));
+  renderCombo();
+  renderSummary();
+}
+
+function showFormula(e) { const td = e.target.closest("td[title]"); if (td) $("formula").textContent = td.title; }
+for (const id of ["sheet", "combo"]) { $(id).addEventListener("click", showFormula); $(id).addEventListener("focusin", showFormula); }
+
+$("reset").addEventListener("click", () => {
+  try { localStorage.removeItem("pma-grades-v2"); } catch (e) {}
+  state = loadState();
+  for (const c of SUBJ) {
+    $("n-" + c).value = state.names[c]; $("g-" + c).value = state.cats[c];
+    for (const r of [3,4,6,7,10,11,13,14,17,18,20,21]) $("i-" + c + r).value = state.inputs[c + r] ?? "";
+  }
+  recalc();
 });
 
-build();
+buildSheet();
 recalc();
 </script>
