@@ -1,0 +1,239 @@
+<title>내신 등급 계산기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one sheet-like table, inputs inline, a summary strip of 최종등급 above it */
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --fg: #1d2330;
+  --muted: #667085;
+  --line: #d9dee7;
+  --head: #eef1f6;
+  --accent: #2f5bd3;
+  --accent-soft: #e6ecfb;
+  --calc: #f3f5f9;
+  --font-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #12151c; --surface: #1a1f29; --fg: #e5e9f0; --muted: #98a2b3; --line: #2e3542;
+  --head: #222936; --accent: #7fa2ff; --accent-soft: #24304d; --calc: #1f2530; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #12151c; --surface: #1a1f29; --fg: #e5e9f0; --muted: #98a2b3; --line: #2e3542;
+  --head: #222936; --accent: #7fa2ff; --accent-soft: #24304d; --calc: #1f2530; color-scheme: dark }
+
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 14px; }
+.wrap { max-width: 1040px; margin: 0 auto; padding-inline: 16px; padding-block: 28px 48px; display: grid; gap: 20px; }
+h1 { font-size: 1.5rem; margin: 0; text-wrap: balance; }
+.sub { color: var(--muted); margin: 4px 0 0; line-height: 1.6; max-width: 65ch; }
+
+.summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+.tile .k { font-size: 12px; color: var(--muted); letter-spacing: .02em; }
+.tile .v { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 500; margin-top: 4px; font-variant-numeric: tabular-nums; }
+.tile.total { background: var(--accent-soft); border-color: var(--accent); }
+.tile.total .v { color: var(--accent); }
+
+.sheet { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+table { border-collapse: collapse; width: 100%; min-width: 760px; font-variant-numeric: tabular-nums; }
+th, td { border: 1px solid var(--line); padding: 6px 8px; text-align: center; white-space: nowrap; }
+th { background: var(--head); font-weight: 500; }
+td.lbl { background: var(--head); }
+td.calc { background: var(--calc); font-family: var(--font-mono); }
+td.final { font-family: var(--font-mono); font-weight: 500; color: var(--accent); }
+td.sub { font-family: var(--font-mono); font-weight: 500; }
+tr.subtotal td, tr.grand td { border-top: 2px solid var(--muted); }
+tr.grand td { font-weight: 700; }
+td[title] { cursor: help; }
+td.in { padding: 2px; }
+input { width: 100%; min-width: 48px; box-sizing: border-box; font: inherit; font-family: var(--font-mono);
+  text-align: center; border: 1px solid transparent; border-radius: 4px; padding: 5px 4px;
+  background: transparent; color: var(--fg); }
+input:hover { border-color: var(--line); }
+input:focus { outline: 2px solid var(--accent); outline-offset: -1px; background: var(--surface); }
+
+.foot { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; color: var(--muted); font-size: 13px; }
+.formula { font-family: var(--font-mono); color: var(--fg); background: var(--surface); border: 1px solid var(--line);
+  border-radius: 6px; padding: 8px 10px; min-height: 1.4em; overflow-x: auto; white-space: nowrap; }
+button { font: inherit; border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--accent); color: var(--accent); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>내신 등급 계산기</h1>
+    <p class="sub">엑셀 파일(pma_261002_1.xlsx)의 수식을 그대로 옮겼습니다. 단위수와 등급 칸을 고치면 단위*등급, 합계, 최종등급이 바로 다시 계산됩니다. 계산된 칸에 마우스를 올리거나 누르면 원본 엑셀 수식이 보입니다.</p>
+  </header>
+
+  <section class="summary" id="summary" aria-label="최종등급 요약"></section>
+
+  <div class="sheet"><table id="sheet"></table></div>
+
+  <div class="formula" id="formula" aria-live="polite">계산된 칸을 누르면 수식이 여기에 표시됩니다.</div>
+
+  <div class="foot">
+    <button type="button" id="reset">예시 값으로 되돌리기</button>
+    <span>값은 이 브라우저에만 저장됩니다.</span>
+  </div>
+</div>
+
+<script>
+// ---- 원본 엑셀 셀 (Sheet1 B2:K24) ----
+const COLS = ["B","C","D","E","F","G","H","I","J","K"];
+const SUBJ = ["E","F","G","H","I"];
+const DEFAULTS = {
+  E3:3,F3:4,G3:3,H3:5,I3:3,  E4:2,F4:3,G4:4,H4:2,I4:3,
+  E6:3,F6:4,G6:3,H6:5,I6:3,  E7:1,F7:4,G7:2,H7:1,I7:5,
+  E10:3,F10:4,G10:3,H10:5,I10:3, E11:1,F11:2,G11:3,H11:4,I11:5,
+  E13:3,F13:4,G13:3,H13:5,I13:3, E14:3,F14:2,G14:1,H14:3,I14:2,
+  E17:3,F17:4,G17:3,H17:5,I17:3, E18:2,F18:1,G18:1,H18:2,I18:4,
+  E20:3,F20:4,G20:3,H20:5,I20:3, E21:2,F21:3,G21:2,H21:2,I21:2
+};
+const F = {}; // formulas, exactly as in the workbook
+const years = [{name:"1학년", top:3}, {name:"2학년", top:10}, {name:"3학년", top:17}];
+for (const y of years) {
+  for (const s of [y.top, y.top + 3]) {          // 1학기, 2학기 블록: 단위수 s, 등급 s+1, 단위*등급 s+2
+    for (const c of SUBJ) F[c + (s+2)] = `=${c}${s}*${c}${s+1}`;
+    F["J"+s] = `=SUM(E${s}:I${s})`;
+    F["J"+(s+2)] = `=SUM(E${s+2}:I${s+2})`;
+    F["K"+s] = `=J${s+2}/J${s}`;
+  }
+  const a = y.top, b = y.top + 3, r = y.top + 6;
+  for (const c of SUBJ) F[c+r] = `=(${c}${a}*${c}${a+1}+${c}${b}*${c}${b+1})/2`;
+  F["K"+r] = `=(J${b+2}+J${a+2})/(J${b}+J${a})`;
+}
+for (const c of SUBJ) F[c+"24"] = `=(${c}3*${c}4+${c}6*${c}7+${c}10*${c}11+${c}13*${c}14+${c}17*${c}18+${c}20*${c}21)/6`;
+F.K24 = "=(J5+J8+J12+J15+J19+J22)/(J3+J6+J10+J13+J17+J20)";
+
+// 셀 표시 형식 (엑셀 number_format 기준)
+const fmt = (ref, v) => {
+  if (!isFinite(v)) return "#DIV/0!";
+  const col = ref[0], row = +ref.slice(1);
+  if (col === "K") return v.toFixed(2);
+  if (row === 9 || row === 16 || row === 23 || row === 24) return v.toFixed(1);
+  return Number.isInteger(v) ? String(v) : v.toFixed(2);
+};
+
+// ---- 작은 수식 엔진: SUM(범위), 셀 참조, 사칙연산 ----
+let values = {};
+function load() {
+  try { const s = JSON.parse(localStorage.getItem("pma-grades") || "null"); if (s) return {...DEFAULTS, ...s}; } catch (e) {}
+  return {...DEFAULTS};
+}
+function save() { try { localStorage.setItem("pma-grades", JSON.stringify(inputs)); } catch (e) {} }
+let inputs = load();
+
+function expandRange(a, b) {
+  const [c1, r1] = [a.charCodeAt(0), +a.slice(1)], [c2, r2] = [b.charCodeAt(0), +b.slice(1)];
+  const out = [];
+  for (let r = r1; r <= r2; r++) for (let c = c1; c <= c2; c++) out.push(String.fromCharCode(c) + r);
+  return out;
+}
+const cache = {};
+function evalCell(ref) {
+  if (ref in cache) return cache[ref];
+  let v;
+  if (F[ref]) {
+    const expr = F[ref].slice(1)
+      .replace(/SUM\(([A-Z]\d+):([A-Z]\d+)\)/g, (_, a, b) => "(" + expandRange(a, b).map(r => `v("${r}")`).join("+") + ")")
+      .replace(/(?<!")\b([A-Z]\d+)\b(?!")/g, 'v("$1")');
+    v = Function("v", "return " + expr)(evalCell);
+  } else {
+    const n = parseFloat(inputs[ref]);
+    v = isFinite(n) ? n : 0;   // 빈 칸은 엑셀처럼 0
+  }
+  return cache[ref] = v;
+}
+function recalc() {
+  for (const k in cache) delete cache[k];
+  for (const ref in F) {
+    const el = document.getElementById("c-" + ref);
+    if (el) el.textContent = fmt(ref, evalCell(ref));
+  }
+  renderSummary();
+}
+
+// ---- 표 그리기 (원본 병합 셀 유지) ----
+const table = document.getElementById("sheet");
+function cell(tag, text, attrs = {}) {
+  const el = document.createElement(tag);
+  if (text != null) el.textContent = text;
+  for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+  return el;
+}
+function calcCell(ref, cls = "calc", attrs = {}) {
+  const td = cell("td", "", {id: "c-" + ref, class: cls, title: `${ref}  ${F[ref]}`, tabindex: "0", ...attrs});
+  return td;
+}
+function build() {
+  const head = document.createElement("tr");
+  ["학년","학기","과목","국어","영어","수학","사회","과학","합계","최종등급"].forEach(t => head.append(cell("th", t, {scope: "col"})));
+  table.append(head);
+
+  for (const y of years) {
+    let first = true;
+    for (const [si, s] of [[0, y.top], [1, y.top + 3]].map(x => x)) {
+      const sem = si === 0 ? "1학기" : "2학기";
+      ["단위수", "등급", "단위*등급"].forEach((lab, i) => {
+        const r = s + i, tr = document.createElement("tr");
+        if (first) { tr.append(cell("th", y.name, {rowspan: 7, scope: "rowgroup"})); first = false; }
+        if (i === 0) tr.append(cell("td", sem, {rowspan: 3, class: "lbl"}));
+        tr.append(cell("td", lab, {class: "lbl"}));
+        for (const c of SUBJ) {
+          const ref = c + r;
+          if (i < 2) {
+            const td = cell("td", null, {class: "in"});
+            const inp = cell("input", null, {id: "i-" + ref, type: "number", inputmode: "decimal", step: "any",
+              "aria-label": `${y.name} ${sem} ${lab} ${ref}`});
+            inp.value = inputs[ref];
+            inp.addEventListener("input", () => { inputs[ref] = inp.value; save(); recalc(); });
+            td.append(inp); tr.append(td);
+          } else tr.append(calcCell(ref));
+        }
+        tr.append(i === 1 ? cell("td", "", {class: "calc"}) : calcCell("J" + r));
+        if (i === 0) tr.append(calcCell("K" + s, "final", {rowspan: 3}));
+        table.append(tr);
+      });
+    }
+    const r = y.top + 6, tr = document.createElement("tr");
+    tr.className = "subtotal";
+    tr.append(cell("td", "단위*등급 소계", {colspan: 2, class: "lbl"}));
+    for (const c of SUBJ) tr.append(calcCell(c + r, "sub"));
+    tr.append(cell("td", ""));
+    tr.append(calcCell("K" + r, "final"));
+    table.append(tr);
+  }
+  const g = document.createElement("tr");
+  g.className = "grand";
+  g.append(cell("td", "단위*등급 합계", {colspan: 3, class: "lbl"}));
+  for (const c of SUBJ) g.append(calcCell(c + "24", "sub"));
+  g.append(cell("td", ""));
+  g.append(calcCell("K24", "final"));
+  table.append(g);
+
+  const box = document.getElementById("formula");
+  table.addEventListener("click", e => { const td = e.target.closest("td[title]"); if (td) box.textContent = td.title; });
+  table.addEventListener("focusin", e => { const td = e.target.closest("td[title]"); if (td) box.textContent = td.title; });
+}
+
+function renderSummary() {
+  const s = document.getElementById("summary");
+  const items = [["1학년 최종등급","K9"],["2학년 최종등급","K16"],["3학년 최종등급","K23"],["전체 최종등급","K24"]];
+  s.replaceChildren(...items.map(([k, ref]) => {
+    const d = cell("div", null, {class: "tile" + (ref === "K24" ? " total" : ""), title: `${ref}  ${F[ref]}`});
+    d.append(cell("div", k, {class: "k"}), cell("div", fmt(ref, evalCell(ref)), {class: "v"}));
+    return d;
+  }));
+}
+
+document.getElementById("reset").addEventListener("click", () => {
+  inputs = {...DEFAULTS};
+  for (const ref in DEFAULTS) document.getElementById("i-" + ref).value = DEFAULTS[ref];
+  save(); recalc();
+});
+
+build();
+recalc();
+</script>
