@@ -72,6 +72,27 @@ input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: -1
 button { font: inherit; border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 6px; padding: 6px 12px; cursor: pointer; }
 button:hover { border-color: var(--accent); color: var(--accent); }
 button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--surface); font-weight: 500; }
+button.primary:hover { color: var(--surface); filter: brightness(1.08); }
+button:disabled { opacity: .6; cursor: progress; }
+.who { display: flex; gap: 6px; align-items: center; color: var(--fg); }
+.who input { width: 120px; border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; background: var(--surface); }
+
+/* PDF용 보고서: 화면 테마와 관계없이 항상 흰 종이 색으로 고정 */
+#pdf-stage { position: fixed; left: -10000px; top: 0; }
+.pdf-page {
+  --bg: #ffffff; --surface: #ffffff; --fg: #1d2330; --muted: #5b6475; --line: #c9d0db;
+  --head: #eef1f6; --accent: #2f5bd3; --accent-soft: #e6ecfb; --calc: #f5f7fa; --off: #9aa3b2;
+  width: 1100px; box-sizing: border-box; padding: 36px 40px; background: var(--bg); color: var(--fg);
+  font-family: var(--font-body); font-size: 13px; display: grid; gap: 16px; color-scheme: light;
+}
+.pdf-page .pdf-head { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid var(--fg); padding-bottom: 10px; }
+.pdf-page .pdf-head h1 { font-size: 22px; }
+.pdf-page .pdf-head .meta { color: var(--muted); text-align: right; line-height: 1.5; }
+.pdf-page h2 { font-size: 15px; margin: 4px 0 0; }
+.pdf-page table { min-width: 0 !important; }
+.pdf-page th, .pdf-page td { padding: 5px 6px; }
+.pdf-page .note { color: var(--muted); font-size: 11.5px; }
 </style>
 
 <div class="wrap">
@@ -94,10 +115,16 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   </section>
 
   <div class="foot">
+    <label class="who" for="student">학생 이름 <input type="text" id="student" placeholder="선택 입력"></label>
+    <button type="button" id="pdf" class="primary">PDF로 저장</button>
     <button type="button" id="reset">예시 값으로 되돌리기</button>
-    <span>입력한 값과 과목명은 이 브라우저에만 저장됩니다.</span>
+    <span id="pdf-status" aria-live="polite">입력한 값과 과목명은 이 브라우저에만 저장됩니다.</span>
   </div>
 </div>
+
+<div id="pdf-stage" aria-hidden="true"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script>
 // ---- 시트 구조: E~I 기존 과목, J~L 추가 과목, M 합계, N 최종등급 ----
@@ -334,6 +361,92 @@ $("reset").addEventListener("click", () => {
     for (const r of [3,4,6,7,10,11,13,14,17,18,20,21]) $("i-" + c + r).value = state.inputs[c + r] ?? "";
   }
   recalc();
+});
+
+// ---- PDF 저장 ----
+try { $("student").value = localStorage.getItem("pma-student") || ""; } catch (e) {}
+$("student").addEventListener("input", () => { try { localStorage.setItem("pma-student", $("student").value); } catch (e) {} });
+
+// 화면 표를 복사해 입력칸을 글자로 바꾼 보고서 페이지를 만든다
+function plainClone(node) {
+  const c = node.cloneNode(true);
+  c.removeAttribute("id");
+  c.querySelectorAll("[id]").forEach(e => e.removeAttribute("id"));
+  const src = node.querySelectorAll("input, select"), dst = c.querySelectorAll("input, select");
+  dst.forEach((e, i) => {
+    const s = src[i];
+    let text = s.value;
+    if (s.tagName === "SELECT") text = s.options[s.selectedIndex].text;
+    else if (s.type === "text" && !text) text = "—";
+    const span = el("span", text);
+    if (s.tagName === "SELECT") { span.style.display = "block"; span.style.fontSize = "11px"; span.style.color = "var(--muted)"; }
+    e.replaceWith(span);
+  });
+  return c;
+}
+function buildReport() {
+  const page = el("div", null, {class: "pdf-page"});
+  const head = el("div", null, {class: "pdf-head"});
+  const name = $("student").value.trim();
+  head.append(el("h1", name ? `${name} 내신 등급` : "내신 등급 계산 결과"));
+  const meta = el("div", null, {class: "meta"});
+  meta.append(el("div", "작성일 " + new Date().toLocaleDateString("ko-KR")), el("div", "단위수 가중 평균등급"));
+  head.append(meta);
+  page.append(head, plainClone($("summary")));
+  const s1 = el("div", null, {class: "sheet"}); s1.append(plainClone($("sheet")));
+  page.append(s1, el("h2", "국영수과 · 국영수사 내신 환산"), plainClone($("groups")));
+  const s2 = el("div", null, {class: "sheet"}); s2.append(plainClone($("combo")));
+  page.append(s2, el("div", "환산 = Σ(단위수×등급) ÷ Σ단위수. 단위*등급 소계·합계 행은 원본 엑셀 수식(÷2, ÷6)을 따릅니다.", {class: "note"}));
+  return page;
+}
+function pdfFileName() {
+  const d = new Date(), pad = n => String(n).padStart(2, "0");
+  const name = $("student").value.trim().replace(/[\\/:*?"<>|]/g, "");
+  return `내신등급${name ? "_" + name : ""}_${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}.pdf`;
+}
+async function makePdf() {
+  const stage = $("pdf-stage");
+  const page = buildReport();
+  stage.replaceChildren(page);
+  try {
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    const canvas = await html2canvas(page, {scale: 2, backgroundColor: "#ffffff", logging: false});
+    const doc = new window.jspdf.jsPDF({orientation: "portrait", unit: "mm", format: "a4"});
+    const W = 210, H = 297, M = 8;
+    const ratio = Math.min((W - 2*M) / canvas.width, (H - 2*M) / canvas.height);
+    const w = canvas.width * ratio, h = canvas.height * ratio;
+    doc.addImage(canvas.toDataURL("image/jpeg", 0.92), "JPEG", (W - w) / 2, M, w, h);
+    return doc;
+  } finally { stage.replaceChildren(); }
+}
+
+
+$("pdf").addEventListener("click", async () => {
+  const btn = $("pdf"), status = $("pdf-status");
+  if (!window.html2canvas || !window.jspdf) { status.textContent = "PDF 도구를 불러오지 못했습니다. 인터넷 연결을 확인한 뒤 새로고침해 주세요."; return; }
+  btn.disabled = true; status.textContent = "PDF를 만드는 중…";
+  try {
+    const doc = await makePdf(), filename = pdfFileName();
+    const downloadsApi = window.claude && claude.use ? await claude.use("downloads").catch(() => null) : null;
+    if (downloadsApi) {
+      try {
+        await downloadsApi.save({filename, data: doc.output("blob")});
+        status.textContent = `${filename} 저장을 요청했습니다.`;
+      } catch (e) {
+        const code = e && e.code;
+        status.textContent = code === "declined" ? "저장을 취소했습니다."
+          : code === "rate_limited" ? "이미 저장 창이 열려 있습니다. 잠시 후 다시 눌러 주세요."
+          : "이 화면에서는 파일을 저장할 수 없습니다.";
+      }
+    } else if (window.claude) {
+      status.textContent = "이 화면에서는 파일을 저장할 수 없습니다.";
+    } else {
+      doc.save(filename);   // HTML 파일을 직접 연 경우
+      status.textContent = `${filename} 을(를) 저장했습니다.`;
+    }
+  } catch (e) {
+    status.textContent = "PDF를 만들지 못했습니다. 다시 시도해 주세요.";
+  } finally { btn.disabled = false; }
 });
 
 buildSheet();
