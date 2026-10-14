@@ -14,15 +14,16 @@
   --accent-soft: #e6ecfb;
   --calc: #f3f5f9;
   --off: #a0a8b6;
+  --warn: #c2410c;
   --font-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #12151c; --surface: #1a1f29; --fg: #e5e9f0; --muted: #98a2b3; --line: #2e3542;
-  --head: #222936; --accent: #7fa2ff; --accent-soft: #24304d; --calc: #1f2530; --off: #5d6677; color-scheme: dark } }
+  --head: #222936; --accent: #7fa2ff; --accent-soft: #24304d; --calc: #1f2530; --off: #5d6677; --warn: #fb923c; color-scheme: dark } }
 :root[data-theme="dark"] {
   --bg: #12151c; --surface: #1a1f29; --fg: #e5e9f0; --muted: #98a2b3; --line: #2e3542;
-  --head: #222936; --accent: #7fa2ff; --accent-soft: #24304d; --calc: #1f2530; --off: #5d6677; color-scheme: dark }
+  --head: #222936; --accent: #7fa2ff; --accent-soft: #24304d; --calc: #1f2530; --off: #5d6677; --warn: #fb923c; color-scheme: dark }
 
 body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 14px; }
 .wrap { max-width: 1180px; margin: 0 auto; padding-inline: 16px; padding-block: 28px 48px; display: grid; gap: 20px; }
@@ -74,6 +75,7 @@ button:hover { border-color: var(--accent); color: var(--accent); }
 button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 button.primary { background: var(--accent); border-color: var(--accent); color: var(--surface); font-weight: 500; }
 button.primary:hover { color: var(--surface); filter: brightness(1.08); }
+button.warn { border-color: var(--warn); color: var(--warn); }
 button:disabled { opacity: .6; cursor: progress; }
 .who { display: flex; gap: 6px; align-items: center; color: var(--fg); }
 .who input { width: 120px; border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; background: var(--surface); }
@@ -109,7 +111,7 @@ button:disabled { opacity: .6; cursor: progress; }
 
   <section style="display:grid;gap:10px">
     <h2>국영수과 · 국영수사 내신 환산</h2>
-    <p class="sub">해당 교과에 속한 과목만 골라 Σ(단위수×등급) ÷ Σ단위수 로 계산합니다. 전과목 열은 위 표의 최종등급과 같은 방식입니다.</p>
+    <p class="sub">해당 교과에 속한 과목만 골라 Σ(단위수×등급) ÷ Σ단위수 로 계산합니다. 전과목 열은 위 표의 최종등급과 같은 방식입니다. 수학계열(수학Ⅰ·미적분·확률과 통계·기하 등)은 수학, 사회계열(통합사회·한국사·지리·윤리·정치와 법·경제 등)은 사회로 들어갑니다.</p>
     <div class="groups" id="groups"></div>
     <div class="sheet"><table id="combo"></table></div>
   </section>
@@ -117,6 +119,7 @@ button:disabled { opacity: .6; cursor: progress; }
   <div class="foot">
     <label class="who" for="student">학생 이름 <input type="text" id="student" placeholder="선택 입력"></label>
     <button type="button" id="pdf" class="primary">PDF로 저장</button>
+    <button type="button" id="clear">초기화</button>
     <button type="button" id="reset">예시 값으로 되돌리기</button>
     <span id="pdf-status" aria-live="polite">입력한 값과 과목명은 이 브라우저에만 저장됩니다.</span>
   </div>
@@ -143,15 +146,19 @@ const DEFAULTS = {
 const years = [{name:"1학년", top:3}, {name:"2학년", top:10}, {name:"3학년", top:17}];
 const sems = y => [[y.name + " 1학기", y.top], [y.name + " 2학기", y.top + 3]];
 
-// 과목명으로 교과 추정
+// 과목명으로 교과 추정 (위에서부터 먼저 맞는 규칙 적용)
+// 수학계열은 수학, 사회계열(역사·지리·윤리·정치·경제 포함)은 사회로 환산에 들어간다
+const CAT_RULES = [
+  ["영", /영어|영미|英/],
+  ["수", /수학|미적분|확률|통계|기하|대수|산수/],
+  ["과", /과학|물리|화학|생명|지구|생물|역학|전자기|양자|물질|세포|유전|행성|우주|환경생태/],
+  ["사", /사회|한국사|역사|세계사|동아시아|지리|윤리|정치|법과사회|경제|사문|사상|지속가능|국제관계|금융/],
+  ["국", /국어|문학|독서|화법|작문|언어|매체|의사소통/]
+];
 function guessCat(name) {
-  const n = (name || "").replace(/\s/g, "");
+  const n = (name || "").replace(/[\s·ㆍ・]/g, "");
   if (!n) return "x";
-  if (/국어|문학|독서|화법|작문|언어|매체/.test(n)) return "국";
-  if (/영어|英/.test(n)) return "영";
-  if (/수학|미적분|확률|통계|기하|대수/.test(n)) return "수";
-  if (/과학|물리|화학|생명|지구|생물/.test(n)) return "과";
-  if (/사회|한국사|역사|세계사|동아시아|지리|윤리|정치|법|경제|사문/.test(n)) return "사";
+  for (const [cat, re] of CAT_RULES) if (re.test(n)) return cat;
   return "x";
 }
 
@@ -187,8 +194,9 @@ function loadState() {
   try { s = JSON.parse(localStorage.getItem("pma-grades-v2") || "null"); } catch (e) {}
   const names = {...DEFAULT_NAMES, ...(s && s.names)};
   const cats = {};
-  for (const c of SUBJ) cats[c] = (s && s.cats && s.cats[c]) || guessCat(names[c]);
-  return { inputs: {...DEFAULTS, ...(s && s.inputs)}, names, cats };
+  const manual = {...(s && s.manual)};
+  for (const c of SUBJ) cats[c] = (manual[c] && s.cats && s.cats[c]) || guessCat(names[c]);
+  return { inputs: {...DEFAULTS, ...(s && s.inputs)}, names, cats, manual };
 }
 function save() { try { localStorage.setItem("pma-grades-v2", JSON.stringify(state)); } catch (e) {} }
 let state = loadState();
@@ -241,9 +249,10 @@ function buildSheet() {
     name.addEventListener("input", () => {
       state.names[c] = name.value;
       state.cats[c] = cat.value = guessCat(name.value);
+      delete state.manual[c];
       save(); recalc();
     });
-    cat.addEventListener("change", () => { state.cats[c] = cat.value; save(); recalc(); });
+    cat.addEventListener("change", () => { state.cats[c] = cat.value; state.manual[c] = true; save(); recalc(); });
     th.append(name, cat);
     head.append(th);
   }
@@ -353,14 +362,37 @@ function recalc() {
 function showFormula(e) { const td = e.target.closest("td[title]"); if (td) $("formula").textContent = td.title; }
 for (const id of ["sheet", "combo"]) { $(id).addEventListener("click", showFormula); $(id).addEventListener("focusin", showFormula); }
 
-$("reset").addEventListener("click", () => {
-  try { localStorage.removeItem("pma-grades-v2"); } catch (e) {}
-  state = loadState();
+function applyState(next) {
+  state = next;
   for (const c of SUBJ) {
     $("n-" + c).value = state.names[c]; $("g-" + c).value = state.cats[c];
     for (const r of [3,4,6,7,10,11,13,14,17,18,20,21]) $("i-" + c + r).value = state.inputs[c + r] ?? "";
   }
-  recalc();
+  save(); recalc();
+}
+$("reset").addEventListener("click", () => {
+  try { localStorage.removeItem("pma-grades-v2"); } catch (e) {}
+  applyState(loadState());
+});
+
+// 초기화: 모든 단위수·등급, 추가 과목명, 학생 이름을 비운다. 실수 방지를 위해 두 번 눌러야 실행.
+let clearArmed = null;
+$("clear").addEventListener("click", () => {
+  const btn = $("clear");
+  if (!clearArmed) {
+    btn.textContent = "한 번 더 누르면 모두 지웁니다";
+    btn.classList.add("warn");
+    clearArmed = setTimeout(() => { clearArmed = null; btn.textContent = "초기화"; btn.classList.remove("warn"); }, 3000);
+    return;
+  }
+  clearTimeout(clearArmed); clearArmed = null;
+  btn.textContent = "초기화"; btn.classList.remove("warn");
+  const names = {...DEFAULT_NAMES}, cats = {};
+  for (const c of SUBJ) cats[c] = guessCat(names[c]);
+  applyState({inputs: {}, names, cats, manual: {}});
+  $("student").value = "";
+  try { localStorage.setItem("pma-student", ""); } catch (e) {}
+  $("pdf-status").textContent = "모든 입력값을 지웠습니다.";
 });
 
 // ---- PDF 저장 ----
