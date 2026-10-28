@@ -65,7 +65,8 @@ ev.items.forEach((t, i) => {
 ev.check.forEach((t, i) => fx.addMono(I.pop(1 + i * 0.25), t, 0.45, (i - 1) * 0.3));
 
 // ---------- the twist: a scratch, then nearly silence ----------
-for (const b of [pad, bass, keys, strings, drums]) MIX.gate(b, ev.twist - 0.01, ev.open - 0.05, 0.01);
+for (const b of [pad, bass, keys, strings, drums]) MIX.gate(b, ev.twist - 0.25, ev.open - 0.05, 0.01); // an 8th of held breath, then the scratch
+MIX.gate(fx, ev.twist - 0.25, ev.twist - 0.005, 0.004); MIX.gate(verb, ev.twist - 0.25, ev.twist + 0.4, 0.004); // dead silence for an 8th, so the scratch is the only hit
 fx.addMono(I.scratch(0.34), ev.twist, 0.5);
 fx.addMono(I.bwomp(), ev.twist + BEAT * 2, 0.3);
 for (let k = 0; k < 4; k++) fx.addMono(I.heartbeat(), ev.twist + 0.6 + k * BEAT * 2, 0.34 + k * 0.05);
