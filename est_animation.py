@@ -949,7 +949,7 @@ def main():
     synth_audio(audio)
     cmd = ["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24",
            "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-", "-i", audio,
-           "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "20", "-c:a", "aac",
+           "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "27", "-preset", "slow", "-c:a", "aac",
            "-b:a", "160k", "-shortest", "-movflags", "+faststart", OUTPUT]
     p = subprocess.Popen(cmd, stdin=subprocess.PIPE)
     n = int(TOTAL * FPS)
