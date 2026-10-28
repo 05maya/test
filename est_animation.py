@@ -643,7 +643,8 @@ def synth_audio(path):
     for d in DINGS:
         add(d, tone(1318.5, 0.5, 0.2, "sine", 7.0) + tone(1760, 0.5, 0.12, "sine", 7.0))
     for b in BURSTS:
-        add(b, tone(55, 2.6, 0.7, "sine", 1.6) + noise(1.8, 0.5, 2.8))
+        add(b, tone(55, 2.6, 0.7, "sine", 1.6))
+        add(b, noise(1.8, 0.5, 2.8))
     for m in (57, 64, 69, 73):
         add(57.0, tone(hz(m), 3.0, 0.11, "sine", 0.8))
     out *= 0.9 / max(1e-6, np.abs(out).max())
