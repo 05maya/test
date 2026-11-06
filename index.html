@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>맞춤 독서 설계 워크북</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans KR", Arial, sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    /* ------------------------------------------------------------------
+     * 1. 도서 카탈로그
+     *    d: 난이도(1 입문 / 2 중급 / 3 심화)
+     *    core: 핵심 역량 한 줄 / mission: 실전 미션 한 줄
+     * ------------------------------------------------------------------ */
+    const BOOKS = {
+      carnegie: { title: "데일 카네기 인간관계론", author: "데일 카네기", d: 1, core: "상대 관점에서 인정하고 관심 갖는 관계의 기본기", mission: "이번 주 만나는 사람 3명에게 구체적인 칭찬 한 마디 건네기" },
+      cialdini: { title: "설득의 심리학", author: "로버트 치알디니", d: 1, core: "설득의 6원칙과 상대의 판단 구조 이해", mission: "6원칙 중 하나를 골라 실제 제안 멘트에 넣어보기" },
+      nvc: { title: "비폭력 대화", author: "마셜 B. 로젠버그", d: 2, core: "관찰-느낌-욕구-부탁 4단계 대화", mission: "갈등 상황을 4단계 문장으로 바꿔 말해보기" },
+      nudge: { title: "넛지", author: "리처드 탈러, 캐스 선스타인", d: 2, core: "선택 구조 설계로 행동 바꾸기", mission: "선택지를 2~3개로 재구성해 상대가 쉽게 고르게 하기" },
+      stick: { title: "스틱!", author: "칩 히스, 댄 히스", d: 2, core: "기억되는 메시지의 6요소(SUCCESs)", mission: "핵심 메시지를 한 문장 + 짧은 사례로 전달하기" },
+      yes: { title: "YES를 이끌어내는 협상법", author: "로저 피셔, 윌리엄 유리", d: 2, core: "입장이 아닌 이해관계 중심 협상", mission: "상대 요구 뒤의 실제 이해관계를 질문 2개로 확인하기" },
+      voss: { title: "Never Split the Difference", author: "크리스 보스", d: 3, core: "미러링·라벨링 등 고급 협상 커뮤니케이션", mission: "상대 말의 끝 단어를 되묻는 미러링을 3회 시도하기" },
+      frame: { title: "프레임", author: "최인철", d: 1, core: "관점(프레임)이 판단과 행동을 좌우한다", mission: "같은 내용을 긍정/손실 프레임으로 각각 써보고 반응 비교하기" },
+      right: { title: "당신이 옳다", author: "정혜신", d: 1, core: "존재 자체를 인정하는 공감", mission: "조언 전에 공감 문장 3번 먼저 말해보기" },
+      kahneman: { title: "생각에 관한 생각", author: "대니얼 카너먼", d: 3, core: "빠른 사고·느린 사고와 앵커링 효과", mission: "제안 시 기준점(앵커)을 먼저 제시하고 반응 관찰하기" },
+
+      collins: { title: "좋은 기업을 넘어 위대한 기업으로", author: "짐 콜린스", d: 3, core: "사람을 먼저 태우고 시스템으로 성과 만들기", mission: "우리 팀 역할 구조를 점검해 병목 1개 개선하기" },
+      grove: { title: "하이 아웃풋 매니지먼트", author: "앤디 그로브", d: 3, core: "관리자의 성과는 팀 전체의 산출물", mission: "1:1 면담을 정기 일정으로 고정하기" },
+      edmondson: { title: "두려움 없는 조직", author: "에이미 에드먼슨", d: 2, core: "심리적 안전감이 학습과 성과를 만든다", mission: "회의에서 질문·실수를 환영하는 멘트 도입하기" },
+      mcchrystal: { title: "팀 오브 팀스", author: "스탠리 맥크리스털", d: 3, core: "공유된 의식과 권한 위임", mission: "정보 공유 루틴 1개 만들어 2주 운영하기" },
+      linchpin: { title: "린치핀", author: "세스 고딘", d: 2, core: "대체 불가능한 가치 만들기", mission: "\"왜 나와 함께해야 하는가?\"에 대한 답 3줄 쓰기" },
+      giveTake: { title: "기브 앤 테이크", author: "애덤 그랜트", d: 1, core: "주는 사람이 장기적으로 성공하는 조건", mission: "부담 없이 도울 수 있는 일 하나를 먼저 제공하기" },
+      originals: { title: "오리지널스", author: "애덤 그랜트", d: 2, core: "새 아이디어를 설득하고 실행하는 법", mission: "아이디어를 상대 프레임에 맞춰 1장 제안서로 정리하기" },
+      drucker: { title: "경영의 실제", author: "피터 드러커", d: 3, core: "목표 설정과 성과 책임", mission: "이번 분기 핵심 목표를 3개로 압축하기" },
+
+      atomic: { title: "아주 작은 습관의 힘", author: "제임스 클리어", d: 1, core: "정체성 기반의 작은 습관 설계", mission: "2분 규칙으로 새 습관 1개 시작하기" },
+      duhigg: { title: "습관의 힘", author: "찰스 두히그", d: 1, core: "신호-행동-보상의 습관 고리", mission: "바꾸고 싶은 습관의 신호와 보상을 기록하기" },
+      mindset: { title: "마인드셋", author: "캐럴 드웩", d: 1, core: "성장 마인드셋으로 실패 재해석", mission: "최근 실패 하나에 \"아직\"을 붙여 다시 쓰기" },
+      grit: { title: "그릿", author: "앤절라 더크워스", d: 1, core: "열정과 끈기로 장기 목표 달성", mission: "장기 목표 한 문장과 오늘의 의도적 연습 1개 정하기" },
+      deepwork: { title: "딥 워크", author: "칼 뉴포트", d: 2, core: "방해 없는 몰입 시간 확보", mission: "매일 90분 딥워크 블록을 캘린더에 고정하기" },
+      flow: { title: "몰입", author: "미하이 칙센트미하이", d: 2, core: "도전과 능력의 균형으로 몰입 만들기", mission: "지금 하는 일의 난이도를 한 단계 조정해보기" },
+      essentialism: { title: "에센셜리즘", author: "그렉 맥커운", d: 2, core: "더 적게, 더 낫게 — 본질에 집중", mission: "이번 주 하지 않을 일 3가지 정하기" },
+      covey: { title: "성공하는 사람들의 7가지 습관", author: "스티븐 코비", d: 2, core: "주도성과 중요한 일 먼저 하기", mission: "할 일을 4사분면(중요/긴급)으로 분류해보기" },
+
+      adler: { title: "미움받을 용기", author: "기시미 이치로, 고가 후미타케", d: 1, core: "과제의 분리와 자기 수용", mission: "고민 하나를 '내 과제/타인의 과제'로 나눠 적기" },
+      frankl: { title: "죽음의 수용소에서", author: "빅터 프랭클", d: 2, core: "의미를 찾는 힘", mission: "힘든 일 하나에서 의미 문장 1개 써보기" },
+      resilience: { title: "회복탄력성", author: "김주환", d: 1, core: "역경을 도약판으로 바꾸는 힘", mission: "하루 3가지 감사·긍정 사건 기록하기" },
+      barrett: { title: "감정은 어떻게 만들어지는가?", author: "리사 펠드먼 배럿", d: 3, core: "감정 입자도를 높이는 법", mission: "오늘 감정을 3개의 구체적 단어로 세분화하기" },
+
+      housel: { title: "돈의 심리학", author: "모건 하우절", d: 1, core: "부는 지식보다 행동이 좌우한다", mission: "한 달 지출·저축 행동 패턴 기록하기" },
+      kiyosaki: { title: "부자 아빠 가난한 아빠", author: "로버트 기요사키", d: 1, core: "자산과 부채의 구분", mission: "내 자산/부채 목록을 직접 작성하기" },
+      kimsh: { title: "돈의 속성", author: "김승호", d: 1, core: "돈을 대하는 태도와 습관", mission: "돈 관련 나만의 원칙 3줄 쓰기" },
+      demarco: { title: "부의 추월차선", author: "엠제이 드마코", d: 1, core: "소득 구조와 시스템 사고", mission: "내 수입원을 종류별로 분류해보기" },
+      mankiw: { title: "맨큐의 경제학", author: "그레고리 맨큐", d: 2, core: "경제학 10대 원리", mission: "최근 의사결정 하나를 기회비용 관점에서 다시 보기" },
+      graham: { title: "현명한 투자자", author: "벤저민 그레이엄", d: 3, core: "안전마진과 미스터 마켓", mission: "나만의 투자 원칙 5줄 작성하기" },
+      marks: { title: "투자에 대한 생각", author: "하워드 막스", d: 3, core: "2차적 사고와 리스크 인식", mission: "투자 판단 하나에 대해 '남들과 다른 이유' 쓰기" },
+      facts: { title: "팩트풀니스", author: "한스 로슬링", d: 2, core: "데이터로 세상을 보는 10가지 본능", mission: "뉴스 하나를 골라 본능 오류 체크하기" },
+
+      zinsser: { title: "글쓰기 생각쓰기", author: "윌리엄 진서", d: 1, core: "군더더기 없는 명료한 글", mission: "어제 쓴 글에서 불필요한 단어 20% 덜어내기" },
+      king: { title: "유혹하는 글쓰기", author: "스티븐 킹", d: 2, core: "많이 읽고 매일 쓰는 습관", mission: "매일 300자씩 7일 쓰기" },
+      kang: { title: "대통령의 글쓰기", author: "강원국", d: 1, core: "읽는 사람을 생각하는 글쓰기", mission: "독자 한 명을 정하고 그에게 쓰는 글 한 편 완성" },
+      minto: { title: "논리의 기술", author: "바바라 민토", d: 3, core: "피라미드 원칙으로 구조화하기", mission: "결론 1개 + 근거 3개 구조로 보고서 쓰기" },
+      eunyu: { title: "글쓰기의 최전선", author: "은유", d: 2, core: "삶에서 길어 올리는 글감", mission: "일상 장면 하나를 관찰 글로 써보기" },
+      baig: { title: "하버드 글쓰기 강의", author: "바버라 베이그", d: 2, core: "명확하고 설득력 있는 글의 기본 원칙", mission: "글의 목적을 한 문장으로 정하고 시작하기" },
+
+      ginott: { title: "부모와 아이 사이", author: "하임 G. 기너트", d: 1, core: "비난 없는 대화와 감정 존중", mission: "아이의 감정을 먼저 말로 읽어주기" },
+      gottman: { title: "내 아이를 위한 감정코칭", author: "최성애, 존 가트맨", d: 1, core: "감정코칭 5단계", mission: "아이가 화낼 때 5단계 중 1~2단계 적용하기" },
+      gongbu: { title: "공부머리 독서법", author: "최승필", d: 1, core: "독서로 만드는 학습 기초체력", mission: "아이와 같은 책 10분 읽고 한 줄 대화하기" },
+
+      lean: { title: "린 스타트업", author: "에릭 리스", d: 2, core: "만들기-측정-학습 순환", mission: "가설 하나를 가장 작은 실험으로 검증하기" },
+      zeroone: { title: "제로 투 원", author: "피터 틸", d: 3, core: "차별화된 독점적 가치 설계", mission: "남들과 다른 나만의 차별화 포인트 정의하기" },
+      blueocean: { title: "블루오션 전략", author: "김위찬, 르네 마보안", d: 2, core: "경쟁 없는 시장 공간 창출", mission: "우리 서비스의 제거-감소-증가-창조 표 그리기" },
+      positioning: { title: "포지셔닝", author: "알 리스, 잭 트라우트", d: 2, core: "고객 마음속 위치 선점", mission: "우리를 한 문장으로 포지셔닝해 적어보기" },
+      hardthing: { title: "하드씽", author: "벤 호로위츠", d: 3, core: "위기 속 의사결정과 리더십", mission: "현재 가장 어려운 결정 하나를 선택지로 분해하기" },
+      innovator: { title: "이노베이터의 딜레마", author: "클레이튼 크리스텐슨", d: 3, core: "파괴적 혁신의 구조 이해", mission: "내 분야의 파괴적 위협 1개 찾아 적기" },
+      contagious: { title: "컨테이저스", author: "조나 버거", d: 2, core: "입소문이 나는 STEPPS 원칙", mission: "STEPPS 중 하나를 홍보 문구에 적용하기" },
+
+      claear: { title: "클리어 싱킹", author: "셰인 패리시", d: 2, core: "더 나은 결정을 위한 사고 모델", mission: "중요한 결정 하나에 사고 모델 1개 적용하기" },
+      birth: { title: "생각의 탄생", author: "로버트 루트번스타인, 미셸 루트번스타인", d: 3, core: "창의적 사고의 13가지 도구", mission: "문제 하나를 유추·패턴 인식으로 다시 보기" },
+      yamaguchi: { title: "철학은 어떻게 삶의 무기가 되는가", author: "야마구치 슈", d: 1, core: "철학적 사고를 일상 의사결정에 활용", mission: "고민 하나에 '왜?'를 5번 던져보기" }
+    };
+
+    const TOPICS = [
+      { id: "comm", emoji: "🗣️", label: "소통·설득·협상", keywords: ["소통", "설득", "협상", "대화", "커뮤니케이션", "말하기", "상담", "갈등", "관계", "화법", "발표", "면접", "스피치", "영업"],
+        books: ["carnegie", "cialdini", "frame", "right", "nvc", "nudge", "stick", "yes", "kahneman", "voss"] },
+      { id: "lead", emoji: "🧭", label: "리더십·조직·커리어", keywords: ["리더", "조직", "팀", "관리", "경영", "직장", "커리어", "회사", "팀장", "승진", "직무"],
+        books: ["giveTake", "linchpin", "edmondson", "originals", "grove", "mcchrystal", "drucker", "collins"] },
+      { id: "self", emoji: "🌱", label: "자기계발·습관·생산성", keywords: ["습관", "자기계발", "생산성", "몰입", "집중", "시간", "루틴", "동기", "성장", "공부", "목표"],
+        books: ["atomic", "duhigg", "mindset", "grit", "covey", "deepwork", "flow", "essentialism"] },
+      { id: "psy", emoji: "💭", label: "마음·심리·감정", keywords: ["심리", "마음", "감정", "자존감", "불안", "스트레스", "멘탈", "공감", "치유", "우울"],
+        books: ["adler", "resilience", "right", "mindset", "frankl", "flow", "kahneman", "barrett"] },
+      { id: "money", emoji: "💰", label: "경제·투자·재테크", keywords: ["경제", "투자", "재테크", "돈", "주식", "부동산", "금융", "자산", "부자", "연금"],
+        books: ["housel", "kiyosaki", "kimsh", "demarco", "mankiw", "facts", "graham", "marks"] },
+      { id: "write", emoji: "✍️", label: "글쓰기·표현", keywords: ["글쓰기", "글", "작문", "콘텐츠", "블로그", "보고서", "스토리", "책쓰기", "카피", "기획서"],
+        books: ["zinsser", "kang", "king", "baig", "eunyu", "stick", "minto"] },
+      { id: "edu", emoji: "🎓", label: "교육·육아·코칭", keywords: ["교육", "육아", "부모", "학부모", "아이", "학생", "교사", "학습", "코칭", "자녀", "선생"],
+        books: ["ginott", "gottman", "gongbu", "mindset", "grit", "nvc", "right", "flow"] },
+      { id: "biz", emoji: "🚀", label: "창업·마케팅·혁신", keywords: ["창업", "스타트업", "마케팅", "브랜드", "사업", "전략", "혁신", "세일즈", "홍보", "서비스"],
+        books: ["positioning", "lean", "blueocean", "contagious", "stick", "zeroone", "innovator", "hardthing"] },
+      { id: "think", emoji: "🧠", label: "사고·논리·의사결정", keywords: ["사고", "논리", "의사결정", "판단", "분석", "문제해결", "비판", "철학", "결정", "데이터"],
+        books: ["yamaguchi", "frame", "facts", "claear", "nudge", "minto", "kahneman", "birth"] }
+    ];
+
+    const STAGES = ["STAGE 1. 기초 다지기", "STAGE 2. 핵심 기술 익히기", "STAGE 3. 현장 적용", "STAGE 4. 심화 · 통합"];
+    const LEVELS = [
+      { id: "beginner", label: "입문 (쉬운 책 위주)" },
+      { id: "normal", label: "보통 (골고루)" },
+      { id: "advanced", label: "심화 (깊이 있는 책 위주)" }
+    ];
+
+    /* ------------------------------------------------------------------
+     * 2. 로드맵 생성 로직
+     * ------------------------------------------------------------------ */
+    function matchTopics(text) {
+      const t = (text || "").toLowerCase();
+      return TOPICS
+        .map(tp => ({ id: tp.id, score: tp.keywords.filter(k => t.includes(k)).length }))
+        .filter(x => x.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .map(x => x.id);
+    }
+
+    function toPlanBook(key) {
+      const b = BOOKS[key];
+      return { id: key, title: b.title, author: b.author, core: b.core, mission: b.mission };
+    }
+
+    function generatePlan(p) {
+      const need = p.weeks * p.perWeek;
+      const lists = p.topics.map(id => TOPICS.find(t => t.id === id).books);
+      const maxLen = Math.max(0, ...lists.map(l => l.length));
+      const seen = new Set();
+      const pool = [];
+      for (let i = 0; i < maxLen; i++) {
+        lists.forEach(l => {
+          if (l[i] && !seen.has(l[i])) { seen.add(l[i]); pool.push(l[i]); }
+        });
+      }
+      const fits = k => p.level === "beginner" ? BOOKS[k].d <= 2 : p.level === "advanced" ? BOOKS[k].d >= 2 : true;
+      const preferred = pool.filter(fits);
+      const rest = pool.filter(k => !fits(k));
+      const picked = [...preferred, ...rest].slice(0, need).sort((a, b) => BOOKS[a].d - BOOKS[b].d);
+
+      const ctx = p.context.trim();
+      // 책이 부족하면 모든 주에 고르게 분배 (예: 16권/12주 → 앞 4주는 2권, 나머지 1권)
+      const base = Math.floor(picked.length / p.weeks);
+      const extra = picked.length % p.weeks;
+      let cursor = 0;
+      return Array.from({ length: p.weeks }, (_, w) => {
+        const cnt = base + (w < extra ? 1 : 0);
+        const books = picked.slice(cursor, cursor + cnt).map(toPlanBook);
+        cursor += cnt;
+        return {
+          week: w + 1,
+          stage: STAGES[Math.min(3, Math.floor((w * 4) / p.weeks))],
+          books,
+          coreAbility: books.map(b => b.core).join(" + "),
+          mission: books.map(b => b.mission).join(" / ") + (books.length && ctx ? ` (적용 현장: ${ctx})` : "")
+        };
+      });
+    }
+
+    /* ------------------------------------------------------------------
+     * 3. 저장소 (localStorage 실패 시에도 동작)
+     * ------------------------------------------------------------------ */
+    const STORE_KEY = "reading_planner_v2";
+    function loadStore() {
+      try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch (e) { return {}; }
+    }
+    function saveStore(data) {
+      try { localStorage.setItem(STORE_KEY, JSON.stringify(data)); } catch (e) { /* 무시 */ }
+    }
+
+    const DEFAULT_PROFILE = {
+      name: "", interest: "", context: "", goal: "",
+      topics: [], weeks: 12, perWeek: 2, dailyMin: 45, level: "normal"
+    };
+
+    /* ------------------------------------------------------------------
+     * 4. 공통 UI
+     * ------------------------------------------------------------------ */
+    const inputCls = "w-full text-sm p-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white";
+
+    function Field({ label, hint, children }) {
+      return (
+        <div>
+          <label className="block text-xs font-bold text-slate-800 mb-1">
+            {label}{hint && <span className="font-normal text-slate-500 ml-1">- {hint}</span>}
+          </label>
+          {children}
+        </div>
+      );
+    }
+
+    /* ------------------------------------------------------------------
+     * 5. 탭 1: 설계 (관심분야 입력)
+     * ------------------------------------------------------------------ */
+    function DesignTab({ profile, setProfile, hasPlan, onGenerate }) {
+      const [suggested, setSuggested] = useState(null);
+      const set = (k, v) => setProfile(prev => ({ ...prev, [k]: v }));
+      const toggleTopic = id => setProfile(prev => ({
+        ...prev,
+        topics: prev.topics.includes(id) ? prev.topics.filter(t => t !== id) : [...prev.topics, id]
+      }));
+
+      const suggest = () => {
+        const ids = matchTopics(profile.interest + " " + profile.context + " " + profile.goal);
+        setSuggested(ids);
+        if (ids.length) setProfile(prev => ({ ...prev, topics: Array.from(new Set([...prev.topics, ...ids])) }));
+      };
+
+      const keyword = (profile.interest || "").split(/[,\n]/)[0].trim();
+      const total = profile.weeks * profile.perWeek;
+
+      return (
+        <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm space-y-6">
+          <div>
+            <h2 className="text-lg font-bold">🎯 나에게 맞는 독서 로드맵 설계하기</h2>
+            <p className="text-xs text-slate-500 mt-0.5">관심분야와 상황을 입력하면 주차별 독서 계획, 실전 미션, 1-1-1 워크시트가 만들어집니다.</p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-4">
+            <Field label="이름 / 닉네임" hint="선택">
+              <input className={inputCls} value={profile.name} onChange={e => set("name", e.target.value)} placeholder="예: 김민지" />
+            </Field>
+            <Field label="적용할 현장" hint="책을 어디에 써먹고 싶은가요?">
+              <input className={inputCls} value={profile.context} onChange={e => set("context", e.target.value)} placeholder="예: 학부모 상담, 팀 회의, 투자 공부" />
+            </Field>
+          </div>
+
+          <Field label="관심분야 / 해결하고 싶은 문제" hint="자유롭게 적고 '분야 자동 추천'을 눌러보세요">
+            <textarea rows={3} className={inputCls} value={profile.interest} onChange={e => set("interest", e.target.value)}
+              placeholder={"예: 학부모와 갈등 없이 대화하고 싶다\n예: 월급 외 수입을 만들기 위해 투자를 공부하고 싶다"} />
+            <div className="flex items-center gap-3 mt-2">
+              <button onClick={suggest} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white hover:bg-indigo-700">
+                🔍 분야 자동 추천
+              </button>
+              {suggested && suggested.length === 0 && (
+                <span className="text-xs text-amber-700">
+                  일치하는 분야가 없어요. 아래에서 직접 고르거나{" "}
+                  {keyword && (
+                    <a className="underline" target="_blank" rel="noreferrer"
+                       href={"https://www.aladin.co.kr/search/wsearchresult.aspx?SearchTarget=Book&SearchWord=" + encodeURIComponent(keyword)}>
+                      '{keyword}' 책 검색
+                    </a>
+                  )}
+                  {" "}후 로드맵에서 직접 추가하세요.
+                </span>
+              )}
+              {suggested && suggested.length > 0 && <span className="text-xs text-emerald-700">{suggested.length}개 분야를 선택했어요.</span>}
+            </div>
+          </Field>
+
+          <Field label="독서 분야 선택" hint="여러 개 선택 가능 (분야 미선택 시 빈 로드맵 생성)">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {TOPICS.map(tp => {
+                const on = profile.topics.includes(tp.id);
+                return (
+                  <button key={tp.id} onClick={() => toggleTopic(tp.id)}
+                    className={`text-left px-3 py-2.5 rounded-lg text-xs font-semibold border transition ${
+                      on ? "bg-indigo-600 text-white border-indigo-600 shadow-sm" : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"}`}>
+                    {tp.emoji} {tp.label}
+                  </button>
+                );
+              })}
+            </div>
+          </Field>
+
+          <Field label="최종 목표" hint="12주 후 어떤 모습이 되고 싶나요?">
+            <input className={inputCls} value={profile.goal} onChange={e => set("goal", e.target.value)} placeholder="예: 학부모가 먼저 속마음을 털어놓는 상담자가 된다" />
+          </Field>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <Field label="기간 (주)">
+              <select className={inputCls} value={profile.weeks} onChange={e => set("weeks", Number(e.target.value))}>
+                {[4, 6, 8, 10, 12, 16, 20, 24].map(n => <option key={n} value={n}>{n}주</option>)}
+              </select>
+            </Field>
+            <Field label="주당 권수">
+              <select className={inputCls} value={profile.perWeek} onChange={e => set("perWeek", Number(e.target.value))}>
+                {[1, 2, 3].map(n => <option key={n} value={n}>{n}권</option>)}
+              </select>
+            </Field>
+            <Field label="하루 독서(분)">
+              <select className={inputCls} value={profile.dailyMin} onChange={e => set("dailyMin", Number(e.target.value))}>
+                {[15, 30, 45, 60, 90].map(n => <option key={n} value={n}>{n}분</option>)}
+              </select>
+            </Field>
+            <Field label="난이도">
+              <select className={inputCls} value={profile.level} onChange={e => set("level", e.target.value)}>
+                {LEVELS.map(l => <option key={l.id} value={l.id}>{l.label}</option>)}
+              </select>
+            </Field>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-slate-100">
+            <span className="text-xs text-slate-500">총 {total}권 · 하루 {profile.dailyMin}분 기준으로 설계됩니다.</span>
+            <button
+              onClick={() => {
+                if (hasPlan && !confirm("새 로드맵을 만들면 현재 로드맵이 교체됩니다. (워크시트·복기 기록은 유지) 계속할까요?")) return;
+                onGenerate();
+              }}
+              className="px-5 py-2.5 rounded-lg text-sm font-bold bg-indigo-600 text-white hover:bg-indigo-700">
+              {hasPlan ? "로드맵 다시 설계하기" : "로드맵 설계하기 →"}
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    /* ------------------------------------------------------------------
+     * 6. 탭 2: 로드맵 (+ 편집)
+     * ------------------------------------------------------------------ */
+    function RoadmapTab({ profile, plan, setPlan, completedWeeks, toggleWeek, goDesign }) {
+      const [editing, setEditing] = useState(false);
+      const [custom, setCustom] = useState({});
+
+      if (!plan.length) {
+        return (
+          <div className="p-8 bg-white rounded-xl border border-dashed border-slate-300 text-center text-sm text-slate-500">
+            아직 로드맵이 없어요.{" "}
+            <button className="text-indigo-600 font-bold underline" onClick={goDesign}>설계 탭</button>에서 관심분야를 입력해보세요.
+          </div>
+        );
+      }
+
+      const usedIds = new Set(plan.flatMap(w => w.books.map(b => b.id)));
+      const candidates = Array.from(new Set(
+        (profile.topics.length ? profile.topics : TOPICS.map(t => t.id))
+          .flatMap(id => TOPICS.find(t => t.id === id).books)
+      )).filter(k => !usedIds.has(k));
+
+      const updateWeek = (wNum, fn) => setPlan(plan.map(w => w.week === wNum ? fn(w) : w));
+      const removeBook = (wNum, id) => updateWeek(wNum, w => ({ ...w, books: w.books.filter(b => b.id !== id) }));
+      const addCatalog = (wNum, key) => {
+        if (!key) return;
+        const b = toPlanBook(key);
+        updateWeek(wNum, w => ({
+          ...w,
+          books: [...w.books, b],
+          coreAbility: w.coreAbility ? w.coreAbility + " + " + b.core : b.core,
+          mission: w.mission ? w.mission + " / " + b.mission : b.mission
+        }));
+      };
+      const addCustom = wNum => {
+        const c = custom[wNum] || {};
+        if (!(c.title || "").trim()) return;
+        const b = { id: "c-" + Date.now(), title: c.title.trim(), author: (c.author || "").trim() || "저자 미상", core: "", mission: "" };
+        updateWeek(wNum, w => ({ ...w, books: [...w.books, b] }));
+        setCustom(prev => ({ ...prev, [wNum]: { title: "", author: "" } }));
+      };
+
+      const copyPlan = () => {
+        const lines = [
+          `📚 ${profile.name ? profile.name + "님의 " : ""}${plan.length}주 독서 로드맵`,
+          profile.goal && `목표: ${profile.goal}`,
+          ""
+        ].filter(x => x !== false && x !== undefined);
+        plan.forEach(w => {
+          lines.push(`[Week ${w.week}] ${w.stage}`);
+          w.books.forEach(b => lines.push(`  - ${b.title} (${b.author})`));
+          if (w.coreAbility) lines.push(`  핵심 역량: ${w.coreAbility}`);
+          if (w.mission) lines.push(`  실전 미션: ${w.mission}`);
+          lines.push("");
+        });
+        const text = lines.join("\n");
+        if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => alert("로드맵이 복사되었습니다."), () => prompt("복사해서 사용하세요", text));
+        else prompt("복사해서 사용하세요", text);
+      };
+
+      let lastStage = "";
+      return (
+        <div className="space-y-4">
+          <div className="p-4 bg-amber-50 rounded-lg border border-amber-200 text-xs text-amber-800 leading-relaxed">
+            <strong>📌 주간 루틴 가이드:</strong> 월~목 하루 {profile.dailyMin}분 독서 & 1-1-1 추출 → 금~토 {profile.context || "실제 현장"}에 실전 투입 → 일요일 복기 & 차주 계획 수립
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <button onClick={copyPlan} className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-300 bg-white hover:bg-slate-50">📋 로드맵 복사</button>
+            <button onClick={() => setEditing(!editing)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold border ${editing ? "bg-indigo-600 text-white border-indigo-600" : "bg-white border-slate-300 hover:bg-slate-50"}`}>
+              {editing ? "✓ 편집 완료" : "✏️ 로드맵 편집"}
+            </button>
+          </div>
+
+          <div className="grid gap-4">
+            {plan.map(item => {
+              const isDone = !!completedWeeks[item.week];
+              const showStage = item.stage !== lastStage;
+              lastStage = item.stage;
+              const c = custom[item.week] || { title: "", author: "" };
+              return (
+                <React.Fragment key={item.week}>
+                  {showStage && <div className="text-xs font-bold text-slate-400 mt-2 px-1">{item.stage}</div>}
+                  <div className={`p-5 rounded-xl border transition-all ${isDone ? "bg-slate-50 border-emerald-300 opacity-90" : "bg-white border-slate-200 shadow-sm"}`}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <span className="text-xs font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700">Week {String(item.week).padStart(2, "0")}</span>
+
+                        <div className="mt-2 space-y-1">
+                          {item.books.length === 0 && <div className="text-xs text-slate-400">이 주에 읽을 책을 추가하세요.</div>}
+                          {item.books.map(b => (
+                            <div key={b.id} className="flex items-center justify-between gap-2">
+                              <div className="text-sm font-bold text-slate-900 break-keep">
+                                {b.title} <span className="text-xs font-normal text-slate-500">· {b.author}</span>
+                              </div>
+                              {editing && <button onClick={() => removeBook(item.week, b.id)} className="text-xs text-rose-600 hover:underline shrink-0">삭제</button>}
+                            </div>
+                          ))}
+                        </div>
+
+                        {editing ? (
+                          <div className="mt-3 space-y-2">
+                            <Field label="핵심 역량">
+                              <input className={inputCls} value={item.coreAbility} onChange={e => updateWeek(item.week, w => ({ ...w, coreAbility: e.target.value }))} />
+                            </Field>
+                            <Field label="실전 미션">
+                              <textarea rows={2} className={inputCls} value={item.mission} onChange={e => updateWeek(item.week, w => ({ ...w, mission: e.target.value }))} />
+                            </Field>
+                            <div className="flex flex-wrap gap-2 items-center pt-1">
+                              <select className="text-xs p-2 border border-slate-200 rounded-lg max-w-full" value="" onChange={e => addCatalog(item.week, e.target.value)}>
+                                <option value="">+ 추천 도서에서 추가</option>
+                                {candidates.map(k => <option key={k} value={k}>{BOOKS[k].title}</option>)}
+                              </select>
+                              <input className="text-xs p-2 border border-slate-200 rounded-lg w-36" placeholder="직접 입력: 책 제목" value={c.title}
+                                onChange={e => setCustom(prev => ({ ...prev, [item.week]: { ...c, title: e.target.value } }))} />
+                              <input className="text-xs p-2 border border-slate-200 rounded-lg w-28" placeholder="저자" value={c.author}
+                                onChange={e => setCustom(prev => ({ ...prev, [item.week]: { ...c, author: e.target.value } }))} />
+                              <button onClick={() => addCustom(item.week)} className="text-xs px-3 py-2 rounded-lg bg-slate-800 text-white font-semibold">추가</button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="mt-2 text-xs text-slate-600 space-y-1">
+                            {item.coreAbility && <div><strong className="text-slate-700">핵심 역량:</strong> {item.coreAbility}</div>}
+                            {item.mission && <div><strong className="text-slate-700">실전 미션:</strong> {item.mission}</div>}
+                          </div>
+                        )}
+                      </div>
+
+                      <button onClick={() => toggleWeek(item.week)}
+                        className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                          isDone ? "bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700" : "bg-white text-slate-600 border-slate-300 hover:bg-slate-50"}`}>
+                        {isDone ? "완주 완료 ✓" : "완주 체크"}
+                      </button>
+                    </div>
+                  </div>
+                </React.Fragment>
+              );
+            })}
+          </div>
+        </div>
+      );
+    }
+
+    /* ------------------------------------------------------------------
+     * 7. 탭 3: 1-1-1 워크시트
+     * ------------------------------------------------------------------ */
+    function WorksheetTab({ plan, worksheets, setWorksheets, goDesign }) {
+      const allBooks = plan.flatMap(w => w.books.map(b => ({ ...b, week: w.week, stage: w.stage })));
+      const [selId, setSelId] = useState(null);
+
+      if (!allBooks.length) {
+        return (
+          <div className="p-8 bg-white rounded-xl border border-dashed border-slate-300 text-center text-sm text-slate-500">
+            워크시트에 표시할 책이 없어요. <button className="text-indigo-600 font-bold underline" onClick={goDesign}>설계 탭</button>에서 로드맵을 만들거나 로드맵에 책을 추가하세요.
+          </div>
+        );
+      }
+
+      const book = allBooks.find(b => b.id === selId) || allBooks[0];
+      const data = worksheets[book.id] || {};
+      const change = (field, val) => setWorksheets(prev => ({ ...prev, [book.id]: { ...prev[book.id], [field]: val } }));
+
+      return (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="space-y-1 md:max-h-[700px] overflow-y-auto pr-1">
+            <span className="text-xs font-semibold text-slate-400 px-2 block mb-2">도서 목록 (총 {allBooks.length}권)</span>
+            {allBooks.map((b, i) => {
+              const has = worksheets[b.id]?.sentence || worksheets[b.id]?.skill || worksheets[b.id]?.experiment;
+              const active = book.id === b.id;
+              return (
+                <button key={b.id} onClick={() => setSelId(b.id)}
+                  className={`w-full text-left px-3 py-2.5 rounded-lg text-xs font-medium transition flex items-center justify-between ${
+                    active ? "bg-indigo-600 text-white shadow-sm" : "bg-white hover:bg-slate-100 text-slate-700 border border-slate-200"}`}>
+                  <span className="truncate pr-2">{String(i + 1).padStart(2, "0")}. {b.title}</span>
+                  {has && <span className={`text-[10px] px-1.5 py-0.5 rounded font-normal ${active ? "bg-indigo-700 text-indigo-100" : "bg-emerald-100 text-emerald-700"}`}>작성됨</span>}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="md:col-span-2 bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+            <div className="border-b border-slate-100 pb-4 mb-4">
+              <span className="text-xs font-medium text-indigo-600">{book.stage} (Week {book.week})</span>
+              <h2 className="text-xl font-bold mt-1">{book.title}</h2>
+              <p className="text-xs text-slate-500 mt-0.5">저자: {book.author}</p>
+              {book.core && <p className="text-xs text-slate-500 mt-1">읽을 때의 초점: {book.core}</p>}
+            </div>
+            <div className="space-y-5">
+              <Field label="1. 1문장 (Core)" hint="이 책이 말하는 가장 핵심적인 원리는?">
+                <textarea rows={3} className={inputCls} value={data.sentence || ""} onChange={e => change("sentence", e.target.value)} placeholder="핵심 통찰을 1문장으로 요약해보세요." />
+              </Field>
+              <Field label="2. 1기술 (Skill)" hint="현장에서 즉시 쓸 수 있는 기술은?">
+                <textarea rows={3} className={inputCls} value={data.skill || ""} onChange={e => change("skill", e.target.value)} placeholder="구체적인 대화 템플릿, 행동 규칙, 체크리스트 등을 적어보세요." />
+              </Field>
+              <Field label="3. 1실험 (Experiment)" hint="누구에게 어떤 상황에서 적용하고 결과는?">
+                <textarea rows={4} className={inputCls} value={data.experiment || ""} onChange={e => change("experiment", e.target.value)}
+                  placeholder={"[계획] 이번 주 ○○ 상황에서 ○○ 기술 적용\n[결과] 상대의 반응 / 내가 느낀 점"} />
+              </Field>
+              <div className="pt-2 text-right"><span className="text-[11px] text-emerald-600 font-medium">✓ 입력 시 브라우저에 자동 저장됩니다.</span></div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    /* ------------------------------------------------------------------
+     * 8. 탭 4: 주간 복기
+     * ------------------------------------------------------------------ */
+    function ReviewTab({ plan, reviews, setReviews, completedWeeks, toggleWeek, goDesign }) {
+      const [wk, setWk] = useState(1);
+      if (!plan.length) {
+        return (
+          <div className="p-8 bg-white rounded-xl border border-dashed border-slate-300 text-center text-sm text-slate-500">
+            <button className="text-indigo-600 font-bold underline" onClick={goDesign}>설계 탭</button>에서 로드맵을 먼저 만들어주세요.
+          </div>
+        );
+      }
+      const cur = reviews[wk] || {};
+      const change = (field, val) => setReviews(prev => ({ ...prev, [wk]: { ...prev[wk], [field]: val } }));
+      const QS = [
+        ["q1", "질문 1. 이번 주에 직접 적용한 핵심 기술은 무엇이며, 상대방의 반응은 어떠했는가?", "실제 상황에서 사용한 구체적 반응을 기록하세요."],
+        ["q2", "질문 2. 예상과 달랐던 지점은 무엇이며, 내 방식에서 보완할 점은 무엇인가?", "돌발 상황이나 놓친 신호를 복기해보세요."],
+        ["q3", "질문 3. 다음 주에 어떤 상황에서 더 정교하게 적용해 볼 것인가?", "구체적 인물과 목표 상황을 설정하세요."]
+      ];
+      return (
+        <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-3">
+            <div>
+              <h2 className="text-lg font-bold">🔄 일요일 주간 복기 및 성장 저널</h2>
+              <p className="text-xs text-slate-500 mt-0.5">한 주의 실험을 돌아보고 다음 주 적용점을 정의합니다.</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-xs font-bold text-slate-700">주차 선택:</label>
+              <select value={wk} onChange={e => setWk(Number(e.target.value))} className="text-xs font-semibold p-2 border border-slate-300 rounded-lg bg-slate-50">
+                {plan.map(w => <option key={w.week} value={w.week}>Week {String(w.week).padStart(2, "0")}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="space-y-6 mt-6">
+            {QS.map(([k, label, ph]) => (
+              <Field key={k} label={label}>
+                <textarea rows={3} className={inputCls} value={cur[k] || ""} onChange={e => change(k, e.target.value)} placeholder={ph} />
+              </Field>
+            ))}
+            <div className="flex justify-between items-center pt-2">
+              <span className="text-[11px] text-emerald-600 font-medium">✓ 입력 시 브라우저에 자동 저장됩니다.</span>
+              <button onClick={() => toggleWeek(wk)}
+                className={`px-4 py-2 rounded-lg text-xs font-bold transition ${completedWeeks[wk] ? "bg-slate-200 text-slate-700 hover:bg-slate-300" : "bg-indigo-600 text-white hover:bg-indigo-700"}`}>
+                {completedWeeks[wk] ? "완주 취소하기" : `Week ${wk} 완주 체크하기`}
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    /* ------------------------------------------------------------------
+     * 9. App
+     * ------------------------------------------------------------------ */
+    function App() {
+      const saved = React.useMemo(loadStore, []);
+      const [profile, setProfile] = useState({ ...DEFAULT_PROFILE, ...(saved.profile || {}) });
+      const [plan, setPlan] = useState(saved.plan || []);
+      const [completedWeeks, setCompletedWeeks] = useState(saved.completedWeeks || {});
+      const [worksheets, setWorksheets] = useState(saved.worksheets || {});
+      const [reviews, setReviews] = useState(saved.reviews || {});
+      const [tab, setTab] = useState((saved.plan || []).length ? "roadmap" : "design");
+
+      useEffect(() => {
+        saveStore({ profile, plan, completedWeeks, worksheets, reviews });
+      }, [profile, plan, completedWeeks, worksheets, reviews]);
+
+      const toggleWeek = w => setCompletedWeeks(prev => ({ ...prev, [w]: !prev[w] }));
+
+      const onGenerate = () => {
+        setPlan(generatePlan(profile));
+        setCompletedWeeks({});
+        setTab("roadmap");
+      };
+
+      const resetAll = () => {
+        if (!confirm("프로필, 로드맵, 워크시트, 복기 기록을 모두 삭제하고 처음부터 시작할까요?")) return;
+        setProfile({ ...DEFAULT_PROFILE });
+        setPlan([]); setCompletedWeeks({}); setWorksheets({}); setReviews({});
+        setTab("design");
+      };
+
+      const total = plan.length;
+      const done = plan.filter(w => completedWeeks[w.week]).length;
+      const percent = total ? Math.round((done / total) * 100) : 0;
+      const bookCount = plan.reduce((n, w) => n + w.books.length, 0);
+
+      const TABS = [["design", "① 관심분야 설계"], ["roadmap", "② 마스터 로드맵"], ["worksheet", "③ 1-1-1 워크시트"], ["review", "④ 주간 복기"]];
+
+      return (
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <header className="mb-8">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <span className="text-xs font-semibold px-2.5 py-1 rounded bg-indigo-100 text-indigo-700">맞춤형 실행 독서 로드맵</span>
+                <h1 className="text-2xl sm:text-3xl font-bold mt-2">
+                  {profile.name ? `${profile.name}님의 독서 설계 워크북` : "맞춤 독서 설계 워크북"}
+                </h1>
+                <p className="text-sm text-slate-500 mt-1">
+                  {profile.goal ? `"${profile.goal}"` : "관심분야를 입력하면 읽기 → 기술 추출 → 현장 실험 → 복기 사이클이 설계됩니다."}
+                </p>
+              </div>
+              <button onClick={resetAll} className="text-xs text-slate-400 hover:text-rose-600 shrink-0 underline">초기화</button>
+            </div>
+
+            {total > 0 && (
+              <div className="mt-5 p-4 bg-white rounded-xl shadow-sm border border-slate-200">
+                <div className="flex justify-between items-center text-sm font-medium mb-2">
+                  <span className="text-slate-700">{total}주 완주 달성률 <span className="text-xs text-slate-400">· 총 {bookCount}권</span></span>
+                  <span className="text-indigo-600 font-bold">{done} / {total}주 ({percent}%)</span>
+                </div>
+                <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+                  <div className="bg-indigo-600 h-3 rounded-full transition-all duration-300" style={{ width: `${percent}%` }}></div>
+                </div>
+              </div>
+            )}
+
+            <div className="flex border-b border-slate-200 mt-6 gap-1 overflow-x-auto">
+              {TABS.map(([id, label]) => (
+                <button key={id} onClick={() => setTab(id)}
+                  className={`pb-3 px-3 text-sm font-semibold border-b-2 whitespace-nowrap transition-colors ${
+                    tab === id ? "border-indigo-600 text-indigo-600" : "border-transparent text-slate-500 hover:text-slate-800"}`}>
+                  {label}
+                </button>
+              ))}
+            </div>
+          </header>
+
+          {tab === "design" && <DesignTab profile={profile} setProfile={setProfile} hasPlan={total > 0} onGenerate={onGenerate} />}
+          {tab === "roadmap" && <RoadmapTab profile={profile} plan={plan} setPlan={setPlan} completedWeeks={completedWeeks} toggleWeek={toggleWeek} goDesign={() => setTab("design")} />}
+          {tab === "worksheet" && <WorksheetTab plan={plan} worksheets={worksheets} setWorksheets={setWorksheets} goDesign={() => setTab("design")} />}
+          {tab === "review" && <ReviewTab plan={plan} reviews={reviews} setReviews={setReviews} completedWeeks={completedWeeks} toggleWeek={toggleWeek} goDesign={() => setTab("design")} />}
+
+          <footer className="mt-10 text-[11px] text-slate-400 text-center">
+            추천 도서는 분야별 큐레이션 초안입니다. 로드맵 편집으로 자유롭게 바꿔 쓰세요. 모든 기록은 이 브라우저에만 저장됩니다.
+          </footer>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
