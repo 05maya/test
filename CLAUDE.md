@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Architecture (all inside `index.html`)
 
-- `BOOKS` / `TOPICS`: curated catalog. Each book has difficulty `d` (1-3), `core` (key skill) and `mission` (practice task). Topics list book keys and keywords used by `matchTopics` for auto-recommendation.
+- `BOOKS` / `TOPICS`: curated catalog. Each book has difficulty `d` (1-3), `core` (key skill) and `mission` (practice task). Topics (incl. humanities, literature, science) list book keys and keywords used by `matchTopics` for auto-recommendation.
 - `generatePlan(profile)`: interleaves books from selected topics, filters/sorts by difficulty level, and distributes them across weeks.
 - Tabs: `DesignTab` (profile input) → `RoadmapTab` (view/edit plan) → `WorksheetTab` (1-1-1 per book) → `ReviewTab` (weekly review).
 - State persists to `localStorage` under `reading_planner_v2` (reads/writes are wrapped in try/catch).

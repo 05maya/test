@@ -182,7 +182,7 @@
           if (l[i] && !seen.has(l[i])) { seen.add(l[i]); pool.push(l[i]); }
         });
       }
-      const fits = k => p.level === "beginner" ? BOOKS[k].d <= 2 : p.level === "advanced" ? BOOKS[k].d >= 2 : true;
+      const fits = k => p.audience === "student" ? BOOKS[k].d <= 2 : p.level === "beginner" ? BOOKS[k].d <= 2 : p.level === "advanced" ? BOOKS[k].d >= 2 : true;
       const preferred = pool.filter(fits);
       const rest = pool.filter(k => !fits(k));
       const picked = [...preferred, ...rest].slice(0, need).sort((a, b) => BOOKS[a].d - BOOKS[b].d);
@@ -218,7 +218,7 @@
     }
 
     const DEFAULT_PROFILE = {
-      name: "", interest: "", context: "", goal: "",
+      name: "", audience: "general", interest: "", context: "", goal: "",
       topics: [], weeks: 12, perWeek: 2, dailyMin: 45, level: "normal"
     };
 
@@ -226,6 +226,22 @@
      * 4. 공통 UI
      * ------------------------------------------------------------------ */
     const inputCls = "w-full text-sm p-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white";
+
+    function BookLinks({ title }) {
+      const q = encodeURIComponent(title);
+      const links = [
+        ["교보문고", "https://search.kyobobook.co.kr/search?keyword=" + q],
+        ["YES24", "https://www.yes24.com/Product/Search?domain=BOOK&query=" + q],
+        ["알라딘", "https://www.aladin.co.kr/search/wsearchresult.aspx?SearchTarget=Book&SearchWord=" + q]
+      ];
+      return (
+        <span className="inline-flex gap-1.5 ml-1">
+          {links.map(([n, u]) => (
+            <a key={n} href={u} target="_blank" rel="noreferrer" className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 hover:bg-indigo-100 hover:text-indigo-700">{n}</a>
+          ))}
+        </span>
+      );
+    }
 
     function Field({ label, hint, children }) {
       return (
@@ -265,12 +281,18 @@
             <p className="text-xs text-slate-500 mt-0.5">관심분야와 상황을 입력하면 주차별 독서 계획, 실전 미션, 1-1-1 워크시트가 만들어집니다.</p>
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-4">
+          <div className="grid sm:grid-cols-3 gap-4">
             <Field label="이름 / 닉네임" hint="선택">
               <input className={inputCls} value={profile.name} onChange={e => set("name", e.target.value)} placeholder="예: 김민지" />
             </Field>
+            <Field label="대상" hint="학생은 입문~중급 도서 위주">
+              <select className={inputCls} value={profile.audience} onChange={e => set("audience", e.target.value)}>
+                <option value="general">일반 (성인)</option>
+                <option value="student">학생 (중·고등)</option>
+              </select>
+            </Field>
             <Field label="적용할 현장" hint="책을 어디에 써먹고 싶은가요?">
-              <input className={inputCls} value={profile.context} onChange={e => set("context", e.target.value)} placeholder="예: 학부모 상담, 팀 회의, 투자 공부" />
+              <input className={inputCls} value={profile.context} onChange={e => set("context", e.target.value)} placeholder="예: 학부모 상담, 수행평가, 투자 공부" />
             </Field>
           </div>
 
@@ -449,6 +471,7 @@
                             <div key={b.id} className="flex items-center justify-between gap-2">
                               <div className="text-sm font-bold text-slate-900 break-keep">
                                 {b.title} <span className="text-xs font-normal text-slate-500">· {b.author}</span>
+                                <BookLinks title={b.title} />
                               </div>
                               {editing && <button onClick={() => removeBook(item.week, b.id)} className="text-xs text-rose-600 hover:underline shrink-0">삭제</button>}
                             </div>
@@ -539,7 +562,7 @@
             <div className="border-b border-slate-100 pb-4 mb-4">
               <span className="text-xs font-medium text-indigo-600">{book.stage} (Week {book.week})</span>
               <h2 className="text-xl font-bold mt-1">{book.title}</h2>
-              <p className="text-xs text-slate-500 mt-0.5">저자: {book.author}</p>
+              <p className="text-xs text-slate-500 mt-0.5">저자: {book.author} <BookLinks title={book.title} /></p>
               {book.core && <p className="text-xs text-slate-500 mt-1">읽을 때의 초점: {book.core}</p>}
             </div>
             <div className="space-y-5">
@@ -694,7 +717,7 @@
           {tab === "review" && <ReviewTab plan={plan} reviews={reviews} setReviews={setReviews} completedWeeks={completedWeeks} toggleWeek={toggleWeek} goDesign={() => setTab("design")} />}
 
           <footer className="mt-10 text-[11px] text-slate-400 text-center">
-            추천 도서는 분야별 큐레이션 초안입니다. 로드맵 편집으로 자유롭게 바꿔 쓰세요. 모든 기록은 이 브라우저에만 저장됩니다.
+            추천 도서는 국내 서점(교보문고·YES24·알라딘)에서 유통되는 책으로 구성했으며, 책 옆 링크로 재고·판매 여부를 확인할 수 있습니다. 로드맵 편집으로 자유롭게 바꿔 쓰세요. 모든 기록은 이 브라우저에만 저장됩니다.
           </footer>
         </div>
       );
