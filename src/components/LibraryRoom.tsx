@@ -22,10 +22,10 @@ function ShelfArt({ x, shelf }: { x: number; shelf: Shelf }) {
       <rect x={x + 10} y={SHELF_TOP - 28} width={SHELF_W - 20} height={26} rx={7} fill={live ? "#d8b25a" : "#9a9078"} />
       <circle cx={x + 28} cy={SHELF_TOP - 15} r={10} fill={live ? "#7a5a1e" : "#6e6654"} />
       <text x={x + 28} y={SHELF_TOP - 10} textAnchor="middle" fontSize="14" fontWeight="800" fill="#fff">{shelf.no}</text>
-      <text x={x + 46} y={SHELF_TOP - 10} fontSize="13.5" fontWeight="700" fill={live ? "#3b2a0e" : "#4a4434"}>{shelf.title}</text>
+      <text x={x + 46} y={SHELF_TOP - 10} fontSize={shelf.title.length > 10 ? 12 : 13.5} fontWeight="700" fill={live ? "#3b2a0e" : "#4a4434"}>{shelf.title}</text>
       {live && (
         <g>
-          <rect x={x + 48} y={SHELF_TOP + SHELF_H + 14} width={SHELF_W - 96} height={24} rx={12} fill="#2f4b8f" />
+          <rect x={x + 60} y={SHELF_TOP + SHELF_H + 14} width={SHELF_W - 120} height={24} rx={12} fill="#2f4b8f" />
           <text x={x + SHELF_W / 2} y={SHELF_TOP + SHELF_H + 31} textAnchor="middle" fontSize="13" fontWeight="700" fill="#fff">열기 ↗</text>
         </g>
       )}
@@ -75,8 +75,8 @@ export default function LibraryRoom({ shelves }: { shelves: Shelf[] }) {
       <rect x="384" y="466" width="10" height="38" fill="#8a6240" /><rect x="566" y="466" width="10" height="38" fill="#8a6240" />
       <path d="M470 446l-32 4v8l32-4zM470 446l32 4v8l-32-4z" fill="#fffdf6" />
       <rect x="530" y="438" width="3" height="14" fill="#3b2d20" /><path d="M514 438l9-18h20l9 18z" fill="#6fae7e" />
-      <rect x="402" y="436" width="22" height="16" rx="3" fill="#f4b8b0" />
-      <path d="M414 430c-4-6 4-8 0-14" stroke="#ffffffaa" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+      <rect x="410" y="436" width="22" height="16" rx="3" fill="#f4b8b0" />
+      <path d="M422 430c-4-6 4-8 0-14" stroke="#ffffffaa" strokeWidth="2.5" fill="none" strokeLinecap="round" />
       {/* 스툴 */}
       {[318, 642].map((x) => (
         <g key={x}><ellipse cx={x} cy={478} rx={26} ry={9} fill="#e8b04a" /><rect x={x - 26} y={478} width={52} height={14} fill="#d99f34" /><ellipse cx={x} cy={492} rx={26} ry={9} fill="#d99f34" /></g>
