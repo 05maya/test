@@ -7,6 +7,8 @@ import { childrenOf, noticeAudienceFor, resourcesForStudent } from "@/lib/access
 import { cancelConsultation, requestConsultation } from "@/app/actions";
 import Header from "@/components/Header";
 import EnglishRoom from "@/components/EnglishRoom";
+import LibraryRoom from "@/components/LibraryRoom";
+import { SHELVES } from "@/lib/library";
 import ResourceList from "@/components/ResourceList";
 
 const STATUS: Record<string, string> = {
@@ -139,6 +141,7 @@ export default async function RoomPage({ params }: { params: Promise<{ slug: str
       <main className="wrap">
         <p><Link href="/">← 로비로</Link></p>
         {slug === "english" && <EnglishRoom />}
+        {slug === "library" && <LibraryRoom shelves={SHELVES} />}
         <h1>{room.icon} {room.name}</h1>
         <p className="muted">{room.desc}</p>
         {content}

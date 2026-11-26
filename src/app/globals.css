@@ -22,9 +22,9 @@ th, td { text-align:left; padding:6px 8px; border-bottom:1px solid var(--line); 
 .err { color:var(--danger); font-size:14px; }
 .row { display:flex; gap:8px; flex-wrap:wrap; align-items:end; }
 .row > * { flex:1 1 140px; }
-.lobby { width:100%; height:auto; border-radius:14px; border:1px solid var(--line); display:block; background:#cfc6b3; }
+.lobby { width:100%; height:auto; border-radius:16px; border:1px solid var(--line); display:block; }
 .door { cursor:pointer; }
-.door .leaf { transition:filter .15s, opacity .15s; }
+.door .leaf { transition:filter .15s; }
 .door:hover .leaf, a:focus-visible .door .leaf { filter:brightness(1.18) saturate(1.1); }
 a:focus-visible { outline:none; }
 a:focus-visible .door .leaf { stroke:#fff; stroke-width:6; }
@@ -34,3 +34,6 @@ a:focus-visible .door .leaf { stroke:#fff; stroke-width:6; }
 .res:last-child { border-bottom:0; }
 details summary { cursor:pointer; }
 .scene { width:100%; height:auto; display:block; border-radius:16px; border:1px solid var(--line); margin-bottom:12px; }
+.shelf-link { cursor:pointer; }
+.shelf-link:hover .shelf-glow, .shelf-link:focus-visible .shelf-glow { opacity:.55; }
+.shelf-link:focus-visible { outline:none; }

@@ -36,7 +36,7 @@ export default async function Lobby() {
       <Header user={user} />
       <main className="wrap">
         <h1>학원 로비</h1>
-        <p className="muted">{user.name}님, 환영합니다. 복도의 문을 눌러 원하는 공간으로 들어가세요.</p>
+        <p className="muted">{user.name}님, 환영합니다. 문을 눌러 원하는 공간으로 들어가세요.</p>
 
         <AcademyLobby role={user.role} />
 
