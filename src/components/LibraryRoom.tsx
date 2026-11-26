@@ -74,7 +74,7 @@ export default function LibraryRoom({ shelves }: { shelves: Shelf[] }) {
       <rect x="372" y="452" width="216" height="14" rx="5" fill="#b88a5b" />
       <rect x="384" y="466" width="10" height="38" fill="#8a6240" /><rect x="566" y="466" width="10" height="38" fill="#8a6240" />
       <path d="M470 446l-32 4v8l32-4zM470 446l32 4v8l-32-4z" fill="#fffdf6" />
-      <rect x="530" y="438" width="3" height="14" fill="#3b2d20" /><path d="M514 438l9-18h20l9 18z" fill="#6fae7e" />
+      <g transform="translate(-34 0)"><rect x="530" y="438" width="3" height="14" fill="#3b2d20" /><path d="M514 438l9-18h20l9 18z" fill="#6fae7e" /></g>
       <rect x="410" y="436" width="22" height="16" rx="3" fill="#f4b8b0" />
       <path d="M422 430c-4-6 4-8 0-14" stroke="#ffffffaa" strokeWidth="2.5" fill="none" strokeLinecap="round" />
       {/* 스툴 */}

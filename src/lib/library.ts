@@ -12,6 +12,10 @@ export const SHELVES: Shelf[] = [
     title: "탐구보고서 워크북 제작",
     url: process.env.INQUIRY_WORKBOOK_URL || "https://html-saiteu-gihoeg.replit.app/user-portal",
   },
-  { no: 3, title: "준비 중" },
+  {
+    no: 3,
+    title: "Better Me 책읽기",
+    url: process.env.BETTER_ME_URL || "https://better-me-jeonryagjeog-caegilggi.replit.app",
+  },
   { no: 4, title: "준비 중" },
 ];
