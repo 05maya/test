@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { ROOMS, canEnter } from "@/lib/rooms";
 import { noticeAudienceFor, resourcesForStudent } from "@/lib/access";
 import Header from "@/components/Header";
+import AcademyLobby from "@/components/AcademyLobby";
 
 export default async function Lobby() {
   const user = await requireUser();
@@ -36,30 +36,9 @@ export default async function Lobby() {
       <Header user={user} />
       <main className="wrap">
         <h1>학원 로비</h1>
-        <p className="muted">{user.name}님, 환영합니다. 가고 싶은 공간을 클릭하세요.</p>
+        <p className="muted">{user.name}님, 환영합니다. 복도의 문을 눌러 원하는 공간으로 들어가세요.</p>
 
-        <svg className="map" viewBox="0 0 785 420" role="group" aria-label="학원 건물 지도">
-          <rect x="10" y="10" width="765" height="400" rx="14" fill="none" stroke="#8886" strokeDasharray="6 6" />
-          {ROOMS.map((r) => {
-            const ok = canEnter(r, user.role);
-            const body = (
-              <g className={`room${ok ? "" : " locked"}`} tabIndex={ok ? 0 : -1}>
-                <rect x={r.x} y={r.y} width={r.w} height={r.h} rx={10} fill={r.color} />
-                <text x={r.x + r.w / 2} y={r.y + r.h / 2 - 4} textAnchor="middle" fontSize="30">{r.icon}</text>
-                <text x={r.x + r.w / 2} y={r.y + r.h / 2 + 26} textAnchor="middle" fontSize="16" fontWeight="700" fill="#111">{r.name}</text>
-              </g>
-            );
-            return ok ? (
-              <Link key={r.slug} href={`/rooms/${r.slug}`} aria-label={`${r.name} 입장`}>
-                {body}
-              </Link>
-            ) : (
-              <g key={r.slug} aria-label={`${r.name} (출입 제한)`}>{body}</g>
-            );
-          })}
-          <rect x="30" y="300" width="170" height="90" rx="10" fill="#d8d2c2" />
-          <text x="115" y="352" textAnchor="middle" fontSize="16" fontWeight="700" fill="#333">🚪 로비</text>
-        </svg>
+        <AcademyLobby role={user.role} />
 
         <div className="grid" style={{ marginTop: 16 }}>
           <section className="card">

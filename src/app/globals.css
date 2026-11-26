@@ -22,11 +22,14 @@ th, td { text-align:left; padding:6px 8px; border-bottom:1px solid var(--line); 
 .err { color:var(--danger); font-size:14px; }
 .row { display:flex; gap:8px; flex-wrap:wrap; align-items:end; }
 .row > * { flex:1 1 140px; }
-.map { width:100%; height:auto; background:var(--card); border:1px solid var(--line); border-radius:12px; }
-.room rect { stroke:#0003; stroke-width:1.5; transition:transform .12s; }
-.room:hover rect, .room:focus rect { filter:brightness(1.08); }
-.room.locked { opacity:.4; }
-.room text { pointer-events:none; }
+.lobby { width:100%; height:auto; border-radius:14px; border:1px solid var(--line); display:block; background:#cfc6b3; }
+.door { cursor:pointer; }
+.door .leaf { transition:filter .15s, opacity .15s; }
+.door:hover .leaf, a:focus-visible .door .leaf { filter:brightness(1.18) saturate(1.1); }
+a:focus-visible { outline:none; }
+a:focus-visible .door .leaf { stroke:#fff; stroke-width:6; }
+.door.locked { cursor:not-allowed; }
+.door.locked .leaf { filter:grayscale(1) brightness(.75); }
 .res { display:flex; justify-content:space-between; gap:12px; border-bottom:1px solid var(--line); padding:10px 0; }
 .res:last-child { border-bottom:0; }
 details summary { cursor:pointer; }
