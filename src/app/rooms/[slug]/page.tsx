@@ -9,6 +9,8 @@ import Header from "@/components/Header";
 import EnglishRoom from "@/components/EnglishRoom";
 import LibraryRoom from "@/components/LibraryRoom";
 import StudyRoom from "@/components/StudyRoom";
+import CounselRoom from "@/components/CounselRoom";
+import { COUNSEL_FILES } from "@/lib/counsel";
 import { PLANNER_URL } from "@/lib/study";
 import { SHELVES } from "@/lib/library";
 import ResourceList from "@/components/ResourceList";
@@ -145,6 +147,7 @@ export default async function RoomPage({ params }: { params: Promise<{ slug: str
         {slug === "english" && <EnglishRoom />}
         {slug === "library" && <LibraryRoom shelves={SHELVES} />}
         {slug === "study" && <StudyRoom plannerUrl={PLANNER_URL} />}
+        {slug === "counsel" && <CounselRoom files={COUNSEL_FILES} />}
         <h1>{room.icon} {room.name}</h1>
         <p className="muted">{room.desc}</p>
         {content}
