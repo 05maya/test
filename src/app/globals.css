@@ -33,3 +33,4 @@ a:focus-visible .door .leaf { stroke:#fff; stroke-width:6; }
 .res { display:flex; justify-content:space-between; gap:12px; border-bottom:1px solid var(--line); padding:10px 0; }
 .res:last-child { border-bottom:0; }
 details summary { cursor:pointer; }
+.scene { width:100%; height:auto; display:block; border-radius:16px; border:1px solid var(--line); margin-bottom:12px; }
