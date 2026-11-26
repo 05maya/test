@@ -1,0 +1,147 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import type { InterviewFile } from "@/lib/interview";
+
+const PRESETS = [5, 10, 15];
+const FILE_COLORS = ["#5b7fbf", "#6aa6a0", "#9a9078"];
+const CX = [290, 480, 670];
+
+function Chip({ x, y, w, label, active, onClick, aria, id }: { x: number; y: number; w: number; label: string; active?: boolean; onClick: () => void; aria: string; id: string }) {
+  return (
+    <g
+      role="button" tabIndex={0} aria-label={aria} aria-pressed={active} data-timer-btn={id} className="tbtn"
+      onClick={onClick}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); } }}
+    >
+      <rect x={x} y={y} width={w} height={24} rx={12} fill={active ? "#ffb44a" : "#2b3552"} stroke="#ffb44a" strokeWidth="1.5" />
+      <text x={x + w / 2} y={y + 16.5} textAnchor="middle" fontSize="12.5" fontWeight="700" fill={active ? "#1c2236" : "#ffd9a0"}>{label}</text>
+    </g>
+  );
+}
+
+function Timer() {
+  const [minutes, setMinutes] = useState(10);
+  const [left, setLeft] = useState(600);
+  const [running, setRunning] = useState(false);
+
+  useEffect(() => {
+    if (!running) return;
+    const id = setInterval(() => {
+      setLeft((s) => {
+        if (s <= 1) { setRunning(false); return 0; }
+        return s - 1;
+      });
+    }, 1000);
+    return () => clearInterval(id);
+  }, [running]);
+
+  const pick = (m: number) => { setMinutes(m); setLeft(m * 60); setRunning(false); };
+  const toggle = () => { if (left === 0) setLeft(minutes * 60); setRunning((r) => !r); };
+  const reset = () => { setLeft(minutes * 60); setRunning(false); };
+
+  const mm = String(Math.floor(left / 60)).padStart(2, "0");
+  const ss = String(left % 60).padStart(2, "0");
+  const warn = left <= 60;
+  const done = left === 0;
+  return (
+    <g>
+      <rect x="370" y="24" width="220" height="118" rx="14" fill="#1c2236" stroke="#8a6a43" strokeWidth="5" />
+      <text x="480" y="44" textAnchor="middle" fontSize="11" fontWeight="700" fill="#8f9bbd" letterSpacing="2">{done ? "TIME UP" : running ? "INTERVIEW" : "READY"}</text>
+      <text x="480" y="92" textAnchor="middle" fontSize="46" fontWeight="700" fill={warn ? "#ff6b5e" : "#ffb44a"} fontFamily="ui-monospace,Menlo,Consolas,monospace" data-timer-display role="timer" aria-label={`남은 시간 ${mm}분 ${ss}초`}>{mm}:{ss}</text>
+      {PRESETS.map((m, i) => (
+        <Chip key={m} id={String(m)} x={382 + i * 46} y={104} w={40} label={`${m}분`} active={minutes === m} onClick={() => pick(m)} aria={`${m}분으로 설정`} />
+      ))}
+      <Chip id="toggle" x={522} y={104} w={30} label={running ? "⏸" : "▶"} onClick={toggle} aria={running ? "일시정지" : "시작"} />
+      <Chip id="reset" x={556} y={104} w={28} label="↺" onClick={reset} aria="처음 시간으로 되돌리기" />
+    </g>
+  );
+}
+
+function Person({ cx, skin, hair, blazer, kind }: { cx: number; skin: string; hair: string; blazer: string; kind: "bob" | "short" | "long" }) {
+  return (
+    <g aria-hidden="true">
+      <rect x={cx - 50} y={196} width={100} height={140} rx={18} fill="#3b4660" />
+      {kind === "long" && <path d={`M${cx - 28} 212Q${cx - 40} 270 ${cx - 32} 292H${cx + 32}Q${cx + 40} 270 ${cx + 28} 212Z`} fill={hair} />}
+      <path d={`M${cx - 60} 336Q${cx - 60} 274 ${cx} 268Q${cx + 60} 274 ${cx + 60} 336Z`} fill={blazer} />
+      <path d={`M${cx - 14} 268L${cx} 296L${cx + 14} 268Z`} fill="#f7f1e6" />
+      {kind === "short" && <path d={`M${cx - 6} 276L${cx} 284L${cx + 6} 276L${cx + 4} 316L${cx} 322L${cx - 4} 316Z`} fill="#b94a52" />}
+      <path d={`M${cx - 26} 292L${cx - 14} 268L${cx} 296L${cx - 20} 326Z`} fill="#00000022" />
+      <path d={`M${cx + 26} 292L${cx + 14} 268L${cx} 296L${cx + 20} 326Z`} fill="#00000022" />
+      <rect x={cx - 8} y={250} width={16} height={20} fill={skin} />
+      <circle cx={cx} cy={226} r={27} fill={skin} />
+      {kind === "bob" && <path d={`M${cx - 30} 232Q${cx - 34} 192 ${cx} 192Q${cx + 34} 192 ${cx + 30} 232L${cx + 28} 246Q${cx + 22} 214 ${cx} 212Q${cx - 22} 214 ${cx - 28} 246Z`} fill={hair} />}
+      {kind === "short" && <path d={`M${cx - 28} 222Q${cx - 30} 194 ${cx} 194Q${cx + 30} 194 ${cx + 28} 222Q${cx + 14} 208 ${cx} 208Q${cx - 14} 208 ${cx - 28} 222Z`} fill={hair} />}
+      {kind === "long" && <path d={`M${cx - 30} 236Q${cx - 34} 192 ${cx} 192Q${cx + 34} 192 ${cx + 30} 236Q${cx + 22} 210 ${cx} 208Q${cx - 22} 210 ${cx - 30} 236Z`} fill={hair} />}
+    </g>
+  );
+}
+
+function FileOnDesk({ i, file }: { i: number; file: InterviewFile }) {
+  const cx = CX[i];
+  const live = !!file.url;
+  return (
+    <g>
+      <polygon points={`${cx - 60},338 ${cx + 60},338 ${cx + 72},368 ${cx - 72},368`} fill={FILE_COLORS[i]} />
+      <polygon points={`${cx - 72},368 ${cx + 72},368 ${cx + 72},374 ${cx - 72},374`} fill="#00000038" />
+      <polygon points={`${cx - 28},346 ${cx + 28},346 ${cx + 32},360 ${cx - 32},360`} fill="#fffdf6" />
+      <text x={cx} y={358} textAnchor="middle" fontSize="12" fontWeight="800" fill="#3b4660">{i + 1}</text>
+      {/* 명패 */}
+      <rect x={cx - 66} y={398} width={132} height={26} rx={7} fill={live ? "#d8b25a" : file.title === "준비 중" ? "#9a9078" : "#d8b25a"} />
+      <circle cx={cx - 50} cy={411} r={10} fill={file.title === "준비 중" ? "#6e6654" : "#7a5a1e"} />
+      <text x={cx - 50} y={416} textAnchor="middle" fontSize="14" fontWeight="800" fill="#fff">{file.no}</text>
+      <text x={cx - 34} y={416} fontSize="13.5" fontWeight="700" fill="#3b2a0e">{file.title}</text>
+    </g>
+  );
+}
+
+export default function InterviewRoom({ files }: { files: InterviewFile[] }) {
+  return (
+    <svg className="scene" viewBox="0 0 960 540" role="group" aria-label="면접실: 면접위원 세 명이 앉아 있고, 뒤 벽에 면접 타이머가 있으며, 책상 위에 파일 세 개가 놓여 있습니다.">
+      <defs>
+        <linearGradient id="i-wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#6b7fa6" /><stop offset="1" stopColor="#55678d" /></linearGradient>
+        <linearGradient id="i-floor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#5a6a8c" /><stop offset="1" stopColor="#47557a" /></linearGradient>
+        <linearGradient id="i-desk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#c9a574" /><stop offset="1" stopColor="#b48c5c" /></linearGradient>
+      </defs>
+      <rect width="960" height="540" fill="url(#i-wall)" />
+      <rect y="320" width="960" height="84" fill="#8a6a43" opacity=".35" />
+      <rect y="400" width="960" height="140" fill="url(#i-floor)" />
+      <rect y="396" width="960" height="8" fill="#3b4660" />
+
+      {/* 벽 장식: 액자 + 블라인드 창 */}
+      <rect x="56" y="80" width="70" height="90" rx="3" fill="#f7f1e6" stroke="#b88a5b" strokeWidth="4" />
+      <rect x="66" y="90" width="50" height="70" fill="#cfe0f2" /><path d="M66 160l16-24 12 14 10-12 12 22z" fill="#8bb08f" />
+      <rect x="140" y="104" width="50" height="62" rx="3" fill="#f7f1e6" stroke="#b88a5b" strokeWidth="4" />
+      <circle cx="165" cy="130" r="14" fill="#e8b04a" /><rect x="152" y="148" width="26" height="6" fill="#d96c6c" />
+      <rect x="776" y="70" width="130" height="190" rx="4" fill="#f9f4ea" />
+      <rect x="784" y="78" width="114" height="174" fill="#a9c9e8" />
+      {Array.from({ length: 11 }, (_, i) => <rect key={i} x="784" y={78 + i * 14} width="114" height="9" fill="#e9e2d2" />)}
+
+      <Timer />
+
+      {/* 의자 등받이 + 면접위원 */}
+      <Person cx={CX[0]} skin="#f0c7a4" hair="#3b2b2b" blazer="#2f4b8f" kind="bob" />
+      <Person cx={CX[1]} skin="#e3b48f" hair="#2b2b33" blazer="#3d4150" kind="short" />
+      <Person cx={CX[2]} skin="#c99a77" hair="#4a2f25" blazer="#8c4a5c" kind="long" />
+
+      {/* 책상 */}
+      <polygon points="190,326 770,326 810,378 150,378" fill="#d5b182" />
+      <polygon points="190,326 770,326 774,332 186,332" fill="#e4c9a0" />
+      <rect x="150" y="378" width="660" height="74" fill="url(#i-desk)" />
+      <rect x="150" y="378" width="660" height="5" fill="#00000026" />
+      {files.map((f, i) => <FileOnDesk key={f.no} i={i} file={f} />)}
+
+      {/* 응시자 의자 등받이 */}
+      <rect x="420" y="484" width="120" height="80" rx="22" fill="#44547a" />
+      <rect x="432" y="494" width="96" height="14" rx="7" fill="#ffffff22" />
+
+      {/* 화분 */}
+      {[44, 916].map((x) => (
+        <g key={x}>
+          <path d={`M${x - 15} 500l-5-42h40l-5 42z`} fill="#c9795a" />
+          <g fill="#5f9a6f"><ellipse cx={x - 8} cy="434" rx="8" ry="28" transform={`rotate(-22 ${x - 8} 434)`} /><ellipse cx={x + 5} cy="426" rx="8" ry="32" /><ellipse cx={x + 17} cy="436" rx="8" ry="28" transform={`rotate(24 ${x + 17} 436)`} /></g>
+        </g>
+      ))}
+    </svg>
+  );
+}
