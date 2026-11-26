@@ -108,7 +108,7 @@ export default function CounselRoom({ files }: { files: CounselFile[] }) {
             <FileArt i={i} file={f} />
           </a>
         ) : (
-          <g key={f.no} role="img" aria-label={`${f.no}번 파일 (준비 중)`}><FileArt i={i} file={f} /></g>
+          <g key={f.no} role="img" aria-label={`${f.no}번 파일: ${f.title} (아직 연결되지 않음)`}><FileArt i={i} file={f} /></g>
         ),
       )}
 
