@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// role: STUDENT | PARENT | TEACHER | ADMIN
+model User {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  passwordHash String
+  name         String
+  role         String
+  grade        String? // 학년 (예: "고1")
+  school       String? // 학교
+  classGroup   String? // 수업반
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  children      ParentChild[]        @relation("parent")
+  parents       ParentChild[]        @relation("child")
+  assignments   ResourceAssignment[]
+  consultations Consultation[]
+}
+
+model ParentChild {
+  id       Int  @id @default(autoincrement())
+  parentId Int
+  childId  Int
+  parent   User @relation("parent", fields: [parentId], references: [id], onDelete: Cascade)
+  child    User @relation("child", fields: [childId], references: [id], onDelete: Cascade)
+
+  @@unique([parentId, childId])
+}
+
+// scope: COMMON | GROUP | PERSONAL
+// groupType: GRADE | SCHOOL | CLASS (scope == GROUP 일 때)
+model Resource {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  url         String
+  room        String // Room slug
+  scope       String   @default("COMMON")
+  groupType   String?
+  groupValue  String?
+  createdAt   DateTime @default(now())
+
+  assignments ResourceAssignment[]
+}
+
+model ResourceAssignment {
+  id         Int      @id @default(autoincrement())
+  resourceId Int
+  userId     Int
+  note       String? // 개인별 피드백/메모
+  createdAt  DateTime @default(now())
+  resource   Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([resourceId, userId])
+}
+
+// audience: ALL | STUDENT | PARENT
+model Notice {
+  id        Int      @id @default(autoincrement())
+  title     String
+  body      String
+  audience  String   @default("ALL")
+  createdAt DateTime @default(now())
+}
+
+// status: REQUESTED | CONFIRMED | DONE | CANCELED
+model Consultation {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  topic       String
+  detail      String?
+  preferredAt String? // 희망 일시 (텍스트)
+  status      String   @default("REQUESTED")
+  adminNote   String?
+  scheduledAt String?
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
