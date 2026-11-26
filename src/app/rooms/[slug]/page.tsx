@@ -8,6 +8,8 @@ import { cancelConsultation, requestConsultation } from "@/app/actions";
 import Header from "@/components/Header";
 import EnglishRoom from "@/components/EnglishRoom";
 import LibraryRoom from "@/components/LibraryRoom";
+import StudyRoom from "@/components/StudyRoom";
+import { PLANNER_URL } from "@/lib/study";
 import { SHELVES } from "@/lib/library";
 import ResourceList from "@/components/ResourceList";
 
@@ -124,7 +126,7 @@ export default async function RoomPage({ params }: { params: Promise<{ slug: str
           <section className="card">
             <h3>🎮 인생게임 플래너</h3>
             <p className="muted">자기주도학습 계획을 세우고 관리하는 도구입니다.</p>
-            <PlannerLink />
+            <a className="btn" href={PLANNER_URL} target="_blank" rel="noopener noreferrer">플래너 실행</a>
           </section>
         )}
         <section className="card">
@@ -142,16 +144,11 @@ export default async function RoomPage({ params }: { params: Promise<{ slug: str
         <p><Link href="/">← 로비로</Link></p>
         {slug === "english" && <EnglishRoom />}
         {slug === "library" && <LibraryRoom shelves={SHELVES} />}
+        {slug === "study" && <StudyRoom plannerUrl={PLANNER_URL} />}
         <h1>{room.icon} {room.name}</h1>
         <p className="muted">{room.desc}</p>
         {content}
       </main>
     </>
   );
-}
-
-async function PlannerLink() {
-  const url = process.env.LIFEGAME_PLANNER_URL;
-  if (!url) return <p className="muted">플래너 주소가 아직 설정되지 않았습니다. (환경변수 LIFEGAME_PLANNER_URL)</p>;
-  return <a className="btn" href={url} target="_blank" rel="noopener noreferrer">플래너 실행</a>;
 }
