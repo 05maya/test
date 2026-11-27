@@ -69,9 +69,9 @@ export const CLASSROOMS: Record<string, Classroom> = {
     bulletinLinks: [
       { title: "사이언스올", href: "https://www.scienceall.com/main" },
       { title: "동아사이언스", href: "https://www.dongascience.com/" },
-      { title: "준비 중" },
-      { title: "준비 중" },
-      { title: "준비 중" },
+      { title: "사이언스타임즈", href: "https://www.sciencetimes.co.kr/main" },
+      { title: "파퓰러사이언스", href: "https://www.popsci.co.kr/" },
+      { title: "사이언스온", href: "https://scienceon.kisti.re.kr/main/mainForm.do?v=2" },
     ],
   },
 };
