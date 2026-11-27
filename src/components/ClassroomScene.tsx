@@ -33,6 +33,12 @@ function Desk({ cx, top, s, variant }: { cx: number; top: number; s: number; var
   );
 }
 
+// 학생 책상 8개: 번호는 앞줄 왼쪽→오른쪽 1~4, 뒷줄 왼쪽→오른쪽 5~8.
+const DESKS = [
+  { cx: 195, top: 456, s: 1.2, v: 1 }, { cx: 345, top: 456, s: 1.2, v: 2 }, { cx: 495, top: 456, s: 1.2, v: 3 }, { cx: 645, top: 456, s: 1.2, v: 4 },
+  { cx: 120, top: 420, s: 1, v: 0 }, { cx: 270, top: 420, s: 1, v: 1 }, { cx: 420, top: 420, s: 1, v: 2 }, { cx: 570, top: 420, s: 1, v: 3 },
+];
+
 function Pin({ x, y, c }: { x: number; y: number; c: string }) {
   return <circle cx={x} cy={y} r="3.5" fill={c} stroke="#0003" strokeWidth="1" />;
 }
@@ -220,8 +226,22 @@ export default function ClassroomScene({ room, mathStart = 0 }: { room: Classroo
 
       <g aria-hidden="true"><PosterArt kind={room.poster} note={room.posterNote} /></g>
 
-      {[120, 270, 420, 570].map((cx, i) => <Desk key={cx} cx={cx} top={420} s={1} variant={i} />)}
-      {[195, 345, 495, 645].map((cx, i) => <Desk key={cx} cx={cx} top={456} s={1.2} variant={i + 1} />)}
+      {DESKS.map((d, i) => ({ ...d, no: i + 1 }))
+        .sort((a, b) => a.top - b.top)
+        .map((d) =>
+          room.deskLink && room.deskLink.no === d.no ? (
+            <a key={d.no} className="shelf-link" href={room.deskLink.href} target="_blank" rel="noopener noreferrer" aria-label={`${d.no}번 책상: ${room.deskLink.label} (새 창에서 열기)`}>
+              <rect className="shelf-glow" x={d.cx - 74} y={d.top - 20} width={148} height={d.s * 82} rx={12} fill="#ffe08a" opacity="0" />
+              <Desk cx={d.cx} top={d.top} s={d.s} variant={d.v} />
+              <circle cx={d.cx - 54 * d.s} cy={d.top - 4} r={12} fill="#7a5a1e" stroke="#fff" strokeWidth="2" />
+              <text x={d.cx - 54 * d.s} y={d.top + 1} textAnchor="middle" fontSize="14" fontWeight="800" fill="#fff">{d.no}</text>
+              <rect x={d.cx - 170} y={d.top + 26} width={96} height={24} rx={12} fill="#2f4b8f" />
+              <text x={d.cx - 122} y={d.top + 43} textAnchor="middle" fontSize="12.5" fontWeight="700" fill="#fff">{room.deskLink.tag} ↗</text>
+            </a>
+          ) : (
+            <Desk key={d.no} cx={d.cx} top={d.top} s={d.s} variant={d.v} />
+          ),
+        )}
 
       <Teacher look={room.look} subject={room.subject} />
     </svg>

@@ -7,6 +7,7 @@ import { HISTORY_QUIZ, SCIENCE_QUIZ, type QuizItem } from "./quizzes";
 export type Look = { hair: string; style: "bun" | "short" | "bob" | "pony"; top: string; coat?: boolean; glasses?: boolean };
 export type Poster = "alphabet" | "graph" | "hangul" | "map" | "periodic";
 export type BoardStatic = { kind: "static"; label: string; headline: string; sub: string; line: string };
+export type DeskLink = { no: number; href: string; tag: string; label: string }; // no번 책상: 앞줄 왼쪽→오른쪽 1~4, 뒷줄 5~8
 export type Classroom = {
   slug: string;
   subject: string; // 영어 · 수학 …
@@ -20,6 +21,7 @@ export type Classroom = {
   look: Look;
   great: number;
   ok: number;
+  deskLink?: DeskLink;
 };
 
 const EBSI_DEFAULT = "https://www.ebsi.co.kr/ebs/pot/poti/main.ebs";
@@ -33,6 +35,7 @@ export const CLASSROOMS: Record<string, Classroom> = {
     board: { kind: "static", label: "Today's word", headline: "serendipity", sub: "/ˌserənˈdɪpəti/ · 뜻밖의 행운", line: "Read · Speak · Write" },
     poster: "alphabet", posterNote: "English only!", sticky: ["WORD", "TEST", "D-3"],
     look: { hair: "#5a3a2e", style: "bun", top: "#a9c4a6" }, great: 90, ok: 70,
+    deskLink: { no: 1, href: "/files/ebs-2027", tag: "EBS 2027", label: "EBS 연계 영어 지문 학습실 2027" },
   },
   math: {
     slug: "math", subject: "수학", assignment: "수학 과제", check: "score",
