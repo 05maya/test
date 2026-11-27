@@ -1,0 +1,27 @@
+export type Room = {
+  slug: string;
+  name: string;
+  icon: string;
+  desc: string;
+  color: string;
+  access?: ("STUDENT" | "PARENT" | "TEACHER" | "ADMIN")[];
+};
+
+export const ROOMS: Room[] = [
+  { slug: "hall", name: "명예의 전당", icon: "🏆", desc: "이달의 명예 · 합격 · 성적 향상", color: "#d8b25a" },
+  { slug: "english", name: "영어관", icon: "🔤", desc: "영어 학습자료 및 시험 대비", color: "#7aa7e8", access: ["STUDENT", "TEACHER", "ADMIN"] },
+  { slug: "math", name: "수학관", icon: "📐", desc: "수학 학습자료", color: "#f2a65a", access: ["STUDENT", "TEACHER", "ADMIN"] },
+  { slug: "korean", name: "국어관", icon: "📖", desc: "독서자료 및 생기부 도서추천", color: "#e57f84", access: ["STUDENT", "TEACHER", "ADMIN"] },
+  { slug: "social", name: "사회관", icon: "🌏", desc: "사회 학습자료 및 탐구활동", color: "#8bc48a", access: ["STUDENT", "TEACHER", "ADMIN"] },
+  { slug: "science", name: "과학관", icon: "🔬", desc: "과학 학습자료 및 탐구보고서 제작", color: "#6cc5c0", access: ["STUDENT", "TEACHER", "ADMIN"] },
+  { slug: "library", name: "도서관", icon: "📚", desc: "생기부 도서추천 등 독서·도서 자료", color: "#6f9a8a", access: ["STUDENT", "TEACHER", "ADMIN"] },
+  { slug: "study", name: "자습실", icon: "🪑", desc: "자기주도학습 계획 · 인생게임 플래너", color: "#b79ae0", access: ["STUDENT", "TEACHER", "ADMIN"] },
+  { slug: "interview", name: "면접실", icon: "🎤", desc: "대학별 면접자료 및 면접 준비", color: "#d9b44a", access: ["STUDENT", "TEACHER", "ADMIN"] },
+  { slug: "counsel", name: "상담실", icon: "💬", desc: "학습·진로 상담 및 상담 신청", color: "#e88fc0" },
+  { slug: "parents", name: "휴게실", icon: "☕", desc: "학부모 휴식 공간 · 공지, 자녀 학습현황, 상담", color: "#d9a46c", access: ["PARENT", "TEACHER", "ADMIN"] },
+];
+
+export const roomBySlug = (slug: string) => ROOMS.find((r) => r.slug === slug);
+
+export const canEnter = (room: Room, role: string) =>
+  !room.access || (room.access as string[]).includes(role);
