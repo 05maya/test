@@ -66,3 +66,10 @@ details summary { cursor:pointer; }
 .proof-preview { width:120px; height:120px; object-fit:cover; border-radius:10px; border:1px solid var(--line); }
 .proof-note { flex-basis:100%; margin:0; }
 button:disabled { opacity:.5; cursor:not-allowed; }
+.iv-q { font-size:18px; margin:0 0 12px; line-height:1.5; }
+.chips { display:flex; flex-wrap:wrap; gap:8px; margin:8px 0 12px; }
+.chip { background:transparent; color:var(--ink); border:1px solid var(--line); padding:6px 12px; border-radius:99px; }
+.chip[aria-checked="true"] { background:var(--brand); color:var(--brand-ink); border-color:var(--brand); font-weight:700; }
+.chip:focus-visible { outline:2px solid var(--brand); outline-offset:2px; }
+.iv-summary { display:grid; grid-template-columns:max-content 1fr; gap:6px 16px; margin:8px 0 12px; }
+.iv-summary dt { color:var(--muted); } .iv-summary dd { margin:0; font-weight:700; }
