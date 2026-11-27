@@ -30,3 +30,8 @@ export function mottoFor(now: Date = new Date()) {
   const label = `${kst.getUTCMonth() + 1}월 ${kst.getUTCDate()}일 ${"일월화수목금토"[kst.getUTCDay()]}요일`;
   return { text: MOTTOS[day % MOTTOS.length], label };
 }
+
+/** 한국 시간 기준 오늘이 에포크 이후 며칠째인지. 하루에 하나씩 순환하는 콘텐츠의 시작 위치 계산에 쓴다. */
+export function kstDayNumber(now: Date = new Date()) {
+  return Math.floor((now.getTime() + KST_OFFSET_MS) / DAY_MS);
+}

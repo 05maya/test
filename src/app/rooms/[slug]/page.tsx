@@ -6,14 +6,17 @@ import { canEnter, roomBySlug } from "@/lib/rooms";
 import { childrenOf, noticeAudienceFor, resourcesForStudent } from "@/lib/access";
 import { cancelConsultation, requestConsultation } from "@/app/actions";
 import Header from "@/components/Header";
-import EnglishRoom from "@/components/EnglishRoom";
+import ClassroomScene from "@/components/ClassroomScene";
+import { classroomFor } from "@/lib/classrooms";
+import { MATH_FORMULAS } from "@/lib/math";
+import { FormulaHtml } from "@/components/FormulaHtml";
+import { kstDayNumber } from "@/lib/mottos";
 import LibraryRoom from "@/components/LibraryRoom";
 import StudyRoom from "@/components/StudyRoom";
 import CounselRoom from "@/components/CounselRoom";
 import InterviewRoom from "@/components/InterviewRoom";
 import HallRoom from "@/components/HallRoom";
-import EnglishTeacher from "@/components/EnglishTeacher";
-import { CLASSCARD_URL, SCORE_GREAT, SCORE_OK } from "@/lib/englishTeacher";
+import TeacherChat from "@/components/TeacherChat";
 import { HALL_ENTRIES } from "@/lib/hall";
 import { INTERVIEW_FILES } from "@/lib/interview";
 import { COUNSEL_FILES } from "@/lib/counsel";
@@ -75,6 +78,7 @@ export default async function RoomPage({ params }: { params: Promise<{ slug: str
   if (!room) notFound();
   const user = await requireUser();
   if (!canEnter(room, user.role)) redirect("/");
+  const classroom = classroomFor(slug);
 
   let content: React.ReactNode;
 
@@ -162,7 +166,7 @@ export default async function RoomPage({ params }: { params: Promise<{ slug: str
       <Header user={user} />
       <main className="wrap">
         <p><Link href="/">← 로비로</Link></p>
-        {slug === "english" && <EnglishRoom />}
+        {classroom && <ClassroomScene room={classroom} mathStart={kstDayNumber()} />}
         {slug === "library" && <LibraryRoom shelves={SHELVES} />}
         {slug === "study" && <StudyRoom plannerUrl={PLANNER_URL} />}
         {slug === "counsel" && <CounselRoom files={COUNSEL_FILES} />}
@@ -170,7 +174,19 @@ export default async function RoomPage({ params }: { params: Promise<{ slug: str
         {slug === "hall" && <HallRoom entries={HALL_ENTRIES} />}
         <h1>{room.icon} {room.name}</h1>
         <p className="muted">{room.desc}</p>
-        {slug === "english" && <EnglishTeacher name={user.name} classCardUrl={CLASSCARD_URL} great={SCORE_GREAT} ok={SCORE_OK} />}
+        {classroom && (
+          <TeacherChat name={user.name} teacher={`${classroom.subject} 선생님`} roomName={room.name} assignment={classroom.assignment} link={classroom.link} great={classroom.great} ok={classroom.ok} />
+        )}
+        {slug === "math" && (
+          <details className="card">
+            <summary><strong>칠판에 나오는 공식 전체 보기</strong> <span className="muted">({MATH_FORMULAS.length}개)</span></summary>
+            <ul className="formulas">
+              {MATH_FORMULAS.map((m) => (
+                <li key={m.tag + m.f}><span className="muted">{m.tag}</span><br /><FormulaHtml src={m.f} /></li>
+              ))}
+            </ul>
+          </details>
+        )}
         {content}
       </main>
     </>

@@ -53,3 +53,8 @@ details summary { cursor:pointer; }
 .tchat-form { display:flex; gap:8px; flex-wrap:wrap; align-items:flex-start; width:100%; }
 .tchat-form input { width:9em; }
 .tchat-form .err { flex-basis:100%; margin:0; }
+.formulas { list-style:none; margin:12px 0 0; padding:0; display:grid; gap:10px 16px; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); }
+.formulas li { padding:8px 10px; border:1px solid var(--line); border-radius:8px; }
+.formula-html { font-size:18px; font-weight:700; letter-spacing:.02em; }
+.tbtn { cursor:pointer; }
+.tbtn:focus-visible text, .tbtn:focus-visible rect { outline:2px solid #ffe08a; }
