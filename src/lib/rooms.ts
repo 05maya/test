@@ -17,7 +17,7 @@ export const ROOMS: Room[] = [
   { slug: "study", name: "자습실", icon: "🪑", desc: "자기주도학습 계획 · 인생게임 플래너", color: "#b79ae0", access: ["STUDENT", "TEACHER", "ADMIN"] },
   { slug: "interview", name: "면접실", icon: "🎤", desc: "대학별 면접자료 및 면접 준비", color: "#d9b44a", access: ["STUDENT", "TEACHER", "ADMIN"] },
   { slug: "counsel", name: "상담실", icon: "💬", desc: "학습·진로 상담 및 상담 신청", color: "#e88fc0" },
-  { slug: "parents", name: "학부모대기실", icon: "🛋️", desc: "공지, 자녀 학습현황, 상담", color: "#a0a8b8", access: ["PARENT", "TEACHER", "ADMIN"] },
+  { slug: "parents", name: "휴게실", icon: "☕", desc: "학부모 휴식 공간 · 공지, 자녀 학습현황, 상담", color: "#d9a46c", access: ["PARENT", "TEACHER", "ADMIN"] },
 ];
 
 export const roomBySlug = (slug: string) => ROOMS.find((r) => r.slug === slug);

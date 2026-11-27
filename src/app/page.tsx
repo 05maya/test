@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { noticeAudienceFor, resourcesForStudent } from "@/lib/access";
 import Header from "@/components/Header";
 import AcademyLobby from "@/components/AcademyLobby";
+import DailyMotto from "@/components/DailyMotto";
 
 export default async function Lobby() {
   const user = await requireUser();
@@ -35,6 +36,7 @@ export default async function Lobby() {
     <>
       <Header user={user} />
       <main className="wrap">
+        <DailyMotto />
         <h1>학원 로비</h1>
         <p className="muted">{user.name}님, 환영합니다. 문을 눌러 원하는 공간으로 들어가세요.</p>
 

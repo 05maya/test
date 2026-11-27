@@ -37,3 +37,7 @@ details summary { cursor:pointer; }
 .shelf-link { cursor:pointer; }
 .shelf-link:hover .shelf-glow, .shelf-link:focus-visible .shelf-glow { opacity:.55; }
 .shelf-link:focus-visible { outline:none; }
+.motto { margin:0 0 20px; padding:14px 18px 20px; text-align:center; color:#f2efe4; border-radius:14px; background:radial-gradient(120% 140% at 50% 0%, #38564f 0%, #2e4a45 60%, #274038 100%); border:10px solid #b0814f; box-shadow:inset 0 0 0 2px #00000033, 0 2px 0 #8a6240; }
+.motto-label { display:flex; justify-content:center; align-items:center; gap:10px; flex-wrap:wrap; font-size:13px; letter-spacing:.14em; color:#ffe08a; }
+.motto-date { padding:1px 10px; border-radius:99px; background:#ffffff1f; letter-spacing:0; color:#e6f0e8; }
+.motto-text { margin:10px auto 0; max-width:30em; font-size:clamp(22px, 4.6vw, 36px); font-weight:800; line-height:1.35; text-wrap:balance; word-break:keep-all; letter-spacing:.01em; text-shadow:0 1px 0 #0006; }
