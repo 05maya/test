@@ -12,6 +12,8 @@ import StudyRoom from "@/components/StudyRoom";
 import CounselRoom from "@/components/CounselRoom";
 import InterviewRoom from "@/components/InterviewRoom";
 import HallRoom from "@/components/HallRoom";
+import EnglishTeacher from "@/components/EnglishTeacher";
+import { CLASSCARD_URL, SCORE_GREAT, SCORE_OK } from "@/lib/englishTeacher";
 import { HALL_ENTRIES } from "@/lib/hall";
 import { INTERVIEW_FILES } from "@/lib/interview";
 import { COUNSEL_FILES } from "@/lib/counsel";
@@ -168,6 +170,7 @@ export default async function RoomPage({ params }: { params: Promise<{ slug: str
         {slug === "hall" && <HallRoom entries={HALL_ENTRIES} />}
         <h1>{room.icon} {room.name}</h1>
         <p className="muted">{room.desc}</p>
+        {slug === "english" && <EnglishTeacher name={user.name} classCardUrl={CLASSCARD_URL} great={SCORE_GREAT} ok={SCORE_OK} />}
         {content}
       </main>
     </>
