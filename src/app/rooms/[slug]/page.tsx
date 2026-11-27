@@ -12,7 +12,7 @@ import StudyRoom from "@/components/StudyRoom";
 import CounselRoom from "@/components/CounselRoom";
 import InterviewRoom from "@/components/InterviewRoom";
 import HallRoom from "@/components/HallRoom";
-import { HALL_SECTIONS } from "@/lib/hall";
+import { HALL_ENTRIES } from "@/lib/hall";
 import { INTERVIEW_FILES } from "@/lib/interview";
 import { COUNSEL_FILES } from "@/lib/counsel";
 import { PLANNER_URL } from "@/lib/study";
@@ -135,10 +135,22 @@ export default async function RoomPage({ params }: { params: Promise<{ slug: str
             <a className="btn" href={PLANNER_URL} target="_blank" rel="noopener noreferrer">플래너 실행</a>
           </section>
         )}
-        <section className="card">
-          <h3>{slug === "study" ? "내 학습계획 · 자료 바로가기" : "학습자료"}</h3>
-          <ResourceList items={items} />
-        </section>
+        {slug === "hall" && (
+          <section className="card">
+            <h3>🏆 명예의 전당 명단</h3>
+            <ul>
+              {HALL_ENTRIES.map((e) => (
+                <li key={`${e.kicker}-${e.name}`}>{e.kicker} {e.headline} · <strong>{e.name}</strong></li>
+              ))}
+            </ul>
+          </section>
+        )}
+        {(slug !== "hall" || items.length > 0) && (
+          <section className="card">
+            <h3>{slug === "study" ? "내 학습계획 · 자료 바로가기" : "학습자료"}</h3>
+            <ResourceList items={items} />
+          </section>
+        )}
       </>
     );
   }
@@ -153,7 +165,7 @@ export default async function RoomPage({ params }: { params: Promise<{ slug: str
         {slug === "study" && <StudyRoom plannerUrl={PLANNER_URL} />}
         {slug === "counsel" && <CounselRoom files={COUNSEL_FILES} />}
         {slug === "interview" && <InterviewRoom files={INTERVIEW_FILES} />}
-        {slug === "hall" && <HallRoom sections={HALL_SECTIONS} />}
+        {slug === "hall" && <HallRoom entries={HALL_ENTRIES} />}
         <h1>{room.icon} {room.name}</h1>
         <p className="muted">{room.desc}</p>
         {content}

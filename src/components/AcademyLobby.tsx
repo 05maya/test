@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { canEnter, roomBySlug } from "@/lib/rooms";
+import { HallPlaque } from "@/components/HallRoom";
+import { HALL_ENTRIES } from "@/lib/hall";
 
 // 학원 건물 단면: 3층(명예의 전당) · 2층 · 1층.
 const FLOOR_GAP = 242;
@@ -205,8 +207,8 @@ export default function AcademyLobby({ role }: { role: string }) {
 
       {/* 3층 트로피 진열장 */}
       <TrophyCase cx={doorX(0)} floorY={FLOORS[0].floorY} v={0} />
-      <TrophyCase cx={doorX(1)} floorY={FLOORS[0].floorY} v={1} />
-      <TrophyCase cx={doorX(3)} floorY={FLOORS[0].floorY} v={1} />
+      <HallPlaque cx={doorX(1)} floorY={FLOORS[0].floorY} entries={HALL_ENTRIES} offset={0} />
+      <HallPlaque cx={doorX(3)} floorY={FLOORS[0].floorY} entries={HALL_ENTRIES} offset={1} />
       <TrophyCase cx={doorX(4)} floorY={FLOORS[0].floorY} v={2} />
 
       {/* 문 */}

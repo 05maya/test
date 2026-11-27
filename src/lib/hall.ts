@@ -1,8 +1,10 @@
-// 명예의 전당 세 개의 전시 액자. 내용(등록 학생)은 아직 연결되지 않았다.
-export type HallSection = { no: number; title: string };
+// 명예의 전당 명단. 구분 없이 한 줄로 두고, 화면에서 돌아가며 한 명씩 보여준다.
+export type HallEntry = { kicker: string; headline: string; name: string };
 
-export const HALL_SECTIONS: HallSection[] = [
-  { no: 1, title: "이달의 명예" },
-  { no: 2, title: "합격" },
-  { no: 3, title: "성적 향상" },
+export const HALL_ENTRIES: HallEntry[] = [
+  { kicker: "탐구보고서 대회", headline: "금상", name: "박연우" },
+  { kicker: "탐구보고서 대회", headline: "금상", name: "김은지" },
+  { kicker: "2027", headline: "합격", name: "김범준" },
 ];
+
+export const HALL_ROTATE_MS = 4000;

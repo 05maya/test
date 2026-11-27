@@ -41,3 +41,6 @@ details summary { cursor:pointer; }
 .motto-label { display:flex; justify-content:center; align-items:center; gap:10px; flex-wrap:wrap; font-size:13px; letter-spacing:.14em; color:#ffe08a; }
 .motto-date { padding:1px 10px; border-radius:99px; background:#ffffff1f; letter-spacing:0; color:#e6f0e8; }
 .motto-text { margin:10px auto 0; max-width:30em; font-size:clamp(22px, 4.6vw, 36px); font-weight:800; line-height:1.35; text-wrap:balance; word-break:keep-all; letter-spacing:.01em; text-shadow:0 1px 0 #0006; }
+@keyframes hallfade { from { opacity:0; } to { opacity:1; } }
+.hall-fade { animation: hallfade .6s ease; }
+@media (prefers-reduced-motion: reduce) { .hall-fade { animation:none; } }
