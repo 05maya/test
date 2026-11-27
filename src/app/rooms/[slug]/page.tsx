@@ -11,6 +11,8 @@ import LibraryRoom from "@/components/LibraryRoom";
 import StudyRoom from "@/components/StudyRoom";
 import CounselRoom from "@/components/CounselRoom";
 import InterviewRoom from "@/components/InterviewRoom";
+import HallRoom from "@/components/HallRoom";
+import { HALL_SECTIONS } from "@/lib/hall";
 import { INTERVIEW_FILES } from "@/lib/interview";
 import { COUNSEL_FILES } from "@/lib/counsel";
 import { PLANNER_URL } from "@/lib/study";
@@ -151,6 +153,7 @@ export default async function RoomPage({ params }: { params: Promise<{ slug: str
         {slug === "study" && <StudyRoom plannerUrl={PLANNER_URL} />}
         {slug === "counsel" && <CounselRoom files={COUNSEL_FILES} />}
         {slug === "interview" && <InterviewRoom files={INTERVIEW_FILES} />}
+        {slug === "hall" && <HallRoom sections={HALL_SECTIONS} />}
         <h1>{room.icon} {room.name}</h1>
         <p className="muted">{room.desc}</p>
         {content}

@@ -8,6 +8,7 @@ export type Room = {
 };
 
 export const ROOMS: Room[] = [
+  { slug: "hall", name: "명예의 전당", icon: "🏆", desc: "이달의 명예 · 합격 · 성적 향상", color: "#d8b25a" },
   { slug: "english", name: "영어관", icon: "🔤", desc: "영어 학습자료 및 시험 대비", color: "#7aa7e8", access: ["STUDENT", "TEACHER", "ADMIN"] },
   { slug: "math", name: "수학관", icon: "📐", desc: "수학 학습자료", color: "#f2a65a", access: ["STUDENT", "TEACHER", "ADMIN"] },
   { slug: "korean", name: "국어관", icon: "📖", desc: "독서자료 및 생기부 도서추천", color: "#e57f84", access: ["STUDENT", "TEACHER", "ADMIN"] },
