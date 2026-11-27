@@ -1,9 +1,9 @@
-// 면접실 책상 위 파일 3개. 1번 교과면접은 교과면접실로 들어간다. 나머지는 이름만 있다.
+// 면접실 책상 위 파일 3개. 1번 교과면접·2번 생기부면접은 각 면접실로 들어가고, 3번은 이름만 있다.
 export type InterviewFile = { no: number; title: string; url?: string };
 
 export const INTERVIEW_FILES: InterviewFile[] = [
   { no: 1, title: "교과면접", url: "/rooms/interview/subject" },
-  { no: 2, title: "생기부면접" },
+  { no: 2, title: "생기부면접", url: "/rooms/interview/record" },
   { no: 3, title: "준비 중" },
 ];
 
