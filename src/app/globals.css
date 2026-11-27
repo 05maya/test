@@ -60,3 +60,9 @@ details summary { cursor:pointer; }
 .tbtn:focus-visible text, .tbtn:focus-visible rect { outline:2px solid #ffe08a; }
 [data-board-toggle] { outline:none; }
 [data-board-toggle]:focus-visible { outline:2px solid #ffe08a; outline-offset:-4px; }
+.proof { display:flex; gap:10px; flex-wrap:wrap; align-items:center; width:100%; }
+.proof-pick { cursor:pointer; }
+.proof:has(input.sr-only:focus-visible) .proof-pick { outline:2px solid var(--brand); outline-offset:2px; }
+.proof-preview { width:120px; height:120px; object-fit:cover; border-radius:10px; border:1px solid var(--line); }
+.proof-note { flex-basis:100%; margin:0; }
+button:disabled { opacity:.5; cursor:not-allowed; }
