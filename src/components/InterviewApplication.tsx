@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { CX, Person } from "./InterviewPeople";
 import { wrapLines } from "./boardKit";
+import InterviewTimer from "./InterviewTimer";
 import { DEPARTMENTS, OTHER_SCHOOL, UNIVERSITIES } from "@/lib/interview";
 
 type Step = "school" | "dept" | "upload" | "done";
@@ -50,8 +51,9 @@ function Scene({ speaker, text, title }: { speaker: number; text: string; title:
       <rect x="776" y="70" width="130" height="190" rx="4" fill="#f9f4ea" />
       <rect x="784" y="78" width="114" height="174" fill="#a9c9e8" />
       {Array.from({ length: 11 }, (_, i) => <rect key={i} x="784" y={78 + i * 14} width="114" height="9" fill="#e9e2d2" />)}
-      <rect x="380" y="26" width="200" height="34" rx="10" fill="#2f4b8f" />
-      <text x="480" y="49" textAnchor="middle" fontSize="17" fontWeight="800" fill="#fff" letterSpacing="2">{title}</text>
+      <rect x="60" y="26" width="180" height="34" rx="10" fill="#2f4b8f" />
+      <text x="150" y="49" textAnchor="middle" fontSize="17" fontWeight="800" fill="#fff" letterSpacing="2">{title}</text>
+      <InterviewTimer compact />
 
       <Person cx={CX[0]} skin="#f0c7a4" hair="#3b2b2b" blazer="#2f4b8f" kind="bob" />
       <Person cx={CX[1]} skin="#e3b48f" hair="#2b2b33" blazer="#3d4150" kind="short" />
@@ -94,7 +96,7 @@ export default function InterviewApplication({ kind }: { kind: InterviewKind }) 
       : step === "dept"
         ? `${school}에 지원했군요. 어느 학과에 지원했나요?`
         : step === "upload"
-          ? `${school} ${dept}, 알겠습니다. 우선 생기부 좀 살펴볼게요. 생기부를 올려 주세요.`
+          ? `${school} ${dept}, 알겠습니다. 우선 생기부 좀 살펴볼게요.`
           : kind === "record"
             ? "생기부 잘 받았습니다. 천천히 살펴보겠습니다."
             : `${school} ${dept} 지원이군요. 잘 알겠습니다.`;
