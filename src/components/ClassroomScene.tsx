@@ -1,7 +1,7 @@
 import MathBoard from "./MathBoard";
 import VocabBoard from "./VocabBoard";
 import QuizBoard from "./QuizBoard";
-import { classroomColor, type Classroom, type Look, type Poster } from "@/lib/classrooms";
+import { classroomColor, type BulletinLink, type Classroom, type Look, type Poster } from "@/lib/classrooms";
 
 // 교실 공통 구조 (정면 구도): 칠판 · 게시판 · 학생 책상 · 과목 선생님.
 
@@ -38,6 +38,40 @@ const DESKS = [
   { cx: 195, top: 456, s: 1.2, v: 1 }, { cx: 345, top: 456, s: 1.2, v: 2 }, { cx: 495, top: 456, s: 1.2, v: 3 }, { cx: 645, top: 456, s: 1.2, v: 4 },
   { cx: 120, top: 420, s: 1, v: 0 }, { cx: 270, top: 420, s: 1, v: 1 }, { cx: 420, top: 420, s: 1, v: 2 }, { cx: 570, top: 420, s: 1, v: 3 },
 ];
+
+const NOTE_COLORS = ["#ffe28a", "#f4b8b0", "#bfe0c4", "#b9d3f2", "#e6d4f2"];
+
+/** 자료 링크 게시판: 코르크판에 메모 5장. href가 있는 메모는 누르면 새 창으로 열린다. */
+function LinkBoard({ links }: { links: BulletinLink[] }) {
+  return (
+    <g>
+      <rect x="40" y="96" width="186" height="216" rx="6" fill="#8a6240" />
+      <rect x="49" y="105" width="168" height="198" rx="2" fill="#d2a373" />
+      {Array.from({ length: 26 }, (_, i) => <circle key={i} cx={58 + ((i * 37) % 150)} cy={114 + ((i * 53) % 180)} r="1.6" fill="#b88454" opacity=".7" aria-hidden="true" />)}
+      <rect x="84" y="70" width="98" height="26" rx="6" fill="#2f4b8f" aria-hidden="true" />
+      <text x="133" y="88" textAnchor="middle" fontSize="15" fontWeight="800" fill="#fff" letterSpacing="2" aria-hidden="true">게시판</text>
+      {links.slice(0, 5).map((l, i) => {
+        const y = 112 + i * 38;
+        const live = !!l.href;
+        const rot = [-1.5, 1, -0.8, 1.4, -1][i];
+        const note = (
+          <g transform={`rotate(${rot} 133 ${y + 16})`}>
+            {live && <rect className="shelf-glow" x={52} y={y - 4} width={162} height={40} rx={6} fill="#ffe08a" opacity="0" />}
+            <rect x={58} y={y} width={150} height={32} rx={3} fill={live ? NOTE_COLORS[i] : "none"} stroke={live ? "#0002" : "#7a5a3a"} strokeWidth={live ? 1 : 1.5} strokeDasharray={live ? undefined : "5 4"} />
+            <circle cx={70} cy={y + 8} r={3.5} fill={live ? "#d96c6c" : "#9a7a58"} stroke="#0003" strokeWidth="1" />
+            <text x={82} y={y + 21} fontSize="13.5" fontWeight="800" fill={live ? "#3b2a0e" : "#6e4f33"}>{l.title}</text>
+            {live && <text x={198} y={y + 21} textAnchor="end" fontSize="13" fontWeight="800" fill="#2f4b8f">↗</text>}
+          </g>
+        );
+        return live ? (
+          <a key={i} className="shelf-link" href={l.href} target="_blank" rel="noopener noreferrer" aria-label={`게시판 ${i + 1}번: ${l.title} (새 창에서 열기)`}>{note}</a>
+        ) : (
+          <g key={i} role="img" aria-label={`게시판 ${i + 1}번 (빈 칸)`}>{note}</g>
+        );
+      })}
+    </g>
+  );
+}
 
 function Pin({ x, y, c }: { x: number; y: number; c: string }) {
   return <circle cx={x} cy={y} r="3.5" fill={c} stroke="#0003" strokeWidth="1" />;
@@ -159,7 +193,7 @@ export default function ClassroomScene({ room, mathStart = 0 }: { room: Classroo
   const b = room.board;
   const [s1, s2, s3] = room.sticky;
   return (
-    <svg className="scene" viewBox="0 0 960 540" role="img" aria-label={`${room.subject}관 교실: 가운데 칠판, 왼쪽 게시판, 학생 책상, ${room.subject} 선생님이 있는 학원 교실`}>
+    <svg className="scene" viewBox="0 0 960 540" role={room.deskLink || room.bulletinLinks ? "group" : "img"} aria-label={`${room.subject}관 교실: 가운데 칠판, 왼쪽 게시판, 학생 책상, ${room.subject} 선생님이 있는 학원 교실`}>
       <defs>
         <linearGradient id="c-wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#f6ecdc" /><stop offset="1" stopColor="#eadcc6" /></linearGradient>
         <linearGradient id="c-floor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#cfa274" /><stop offset="1" stopColor="#b6875c" /></linearGradient>
@@ -200,6 +234,9 @@ export default function ClassroomScene({ room, mathStart = 0 }: { room: Classroo
       )}
 
       {/* 게시판 */}
+      {room.bulletinLinks ? (
+        <LinkBoard links={room.bulletinLinks} />
+      ) : (
       <g aria-hidden="true">
         <rect x="40" y="96" width="186" height="216" rx="6" fill="#8a6240" />
         <rect x="49" y="105" width="168" height="198" rx="2" fill="#d2a373" />
@@ -223,6 +260,7 @@ export default function ClassroomScene({ room, mathStart = 0 }: { room: Classroo
         <g transform="rotate(3 181 273)"><path d="M164 266l5 5 9-10" stroke="#fff" strokeWidth="3" fill="none" strokeLinecap="round" /><path d="M184 268h14M184 276h10" stroke="#ffffffaa" strokeWidth="2.5" strokeLinecap="round" /></g>
         <Pin x={181} y={259} c="#d96c6c" />
       </g>
+      )}
 
       <g aria-hidden="true"><PosterArt kind={room.poster} note={room.posterNote} /></g>
 

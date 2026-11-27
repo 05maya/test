@@ -8,6 +8,7 @@ export type Look = { hair: string; style: "bun" | "short" | "bob" | "pony"; top:
 export type Poster = "alphabet" | "graph" | "hangul" | "map" | "periodic";
 export type BoardStatic = { kind: "static"; label: string; headline: string; sub: string; line: string };
 export type DeskLink = { no: number; href: string; tag: string; label: string }; // no번 책상: 앞줄 왼쪽→오른쪽 1~4, 뒷줄 5~8
+export type BulletinLink = { title: string; href?: string }; // href가 없으면 빈 칸("준비 중")
 export type Classroom = {
   slug: string;
   subject: string; // 영어 · 수학 …
@@ -22,6 +23,7 @@ export type Classroom = {
   great: number;
   ok: number;
   deskLink?: DeskLink;
+  bulletinLinks?: BulletinLink[]; // 있으면 게시판이 자료 링크 5칸으로 바뀐다
 };
 
 const EBSI_DEFAULT = "https://www.ebsi.co.kr/ebs/pot/poti/main.ebs";
@@ -64,6 +66,13 @@ export const CLASSROOMS: Record<string, Classroom> = {
     board: { kind: "quiz", title: "오늘의 물화생 퀴즈", items: SCIENCE_QUIZ },
     poster: "periodic", posterNote: "Observe!", sticky: ["실험", "보고서", "D-6"],
     look: { hair: "#2f4b8f", style: "bob", top: "#6aa6a0", coat: true, glasses: true }, great: 90, ok: 70,
+    bulletinLinks: [
+      { title: "사이언스올", href: "https://www.scienceall.com/main" },
+      { title: "동아사이언스", href: "https://www.dongascience.com/" },
+      { title: "준비 중" },
+      { title: "준비 중" },
+      { title: "준비 중" },
+    ],
   },
 };
 
