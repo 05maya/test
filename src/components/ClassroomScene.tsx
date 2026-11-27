@@ -1,4 +1,6 @@
 import MathBoard from "./MathBoard";
+import VocabBoard from "./VocabBoard";
+import QuizBoard from "./QuizBoard";
 import { classroomColor, type Classroom, type Look, type Poster } from "@/lib/classrooms";
 
 // 교실 공통 구조 (정면 구도): 칠판 · 게시판 · 학생 책상 · 과목 선생님.
@@ -176,6 +178,10 @@ export default function ClassroomScene({ room, mathStart = 0 }: { room: Classroo
       <rect x="590" y="249" width="40" height="9" rx="3" fill="#6f7a99" />
       {b.kind === "math" ? (
         <MathBoard start={mathStart} homework={`HOMEWORK  ☑ ${room.assignment}`} />
+      ) : b.kind === "vocab" ? (
+        <VocabBoard items={b.items} start={mathStart} homework={`HOMEWORK  ☑ ${room.assignment}`} />
+      ) : b.kind === "quiz" ? (
+        <QuizBoard items={b.items} title={b.title} start={mathStart} homework={`HOMEWORK  ☑ ${room.assignment}`} />
       ) : (
         <g fill="#e6f0e8" fontFamily={CHALK_FONT}>
           <text x="480" y="96" textAnchor="middle" fontSize="14" opacity=".8">{b.label}</text>

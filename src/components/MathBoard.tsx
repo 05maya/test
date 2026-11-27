@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Arrow } from "./boardKit";
 import { MATH_FORMULAS, MATH_ROTATE_MS, formulaWidth, parseFormula, type MathFormula } from "@/lib/math";
 
 /** 칠판용 SVG 수식. ^ 위첨자 · _ 아래첨자를 tspan으로 그린다. */
@@ -39,16 +40,6 @@ export function MathSlide({ item }: { item: MathFormula }) {
       <rect x={480 - tagW / 2} y={102} width={tagW} height={24} rx={12} fill="#f4b8b0" opacity=".2" />
       <text x={480} y={119} textAnchor="middle" fontSize="14" fill="#f4b8b0" data-math-tag>{item.tag}</text>
       <FormulaText src={item.f} x={480} y={176} size={formulaSize(item.f)} fill="#ffe08a" />
-    </g>
-  );
-}
-
-function Arrow({ x, label, dir, onClick }: { x: number; label: string; dir: "prev" | "next"; onClick: () => void }) {
-  return (
-    <g role="button" tabIndex={0} aria-label={label} data-math-nav={dir} className="tbtn" onClick={onClick}
-      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); } }}>
-      <rect x={x - 14} y={134} width={28} height={50} rx={8} fill="#ffffff" opacity=".001" />
-      <text x={x} y={170} textAnchor="middle" fontSize="34" fill="#e6f0e8" opacity=".55">{dir === "prev" ? "‹" : "›"}</text>
     </g>
   );
 }

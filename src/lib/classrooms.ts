@@ -1,6 +1,8 @@
 // 교실(영어관·수학관·국어관·사회관·과학관) 공통 구조의 과목별 설정.
 // 선생님의 과제 링크는 환경변수로 넣을 수 있고, 없으면 자습실로 안내한다.
 import { roomBySlug } from "./rooms";
+import { VOCAB, type VocabItem } from "./vocab";
+import { HISTORY_QUIZ, SCIENCE_QUIZ, type QuizItem } from "./quizzes";
 
 export type Look = { hair: string; style: "bun" | "short" | "bob" | "pony"; top: string; coat?: boolean; glasses?: boolean };
 export type Poster = "alphabet" | "graph" | "hangul" | "map" | "periodic";
@@ -10,7 +12,7 @@ export type Classroom = {
   subject: string; // 영어 · 수학 …
   assignment: string; // 선생님이 점수를 묻는 과제
   link: { href: string; label: string; external: boolean };
-  board: BoardStatic | { kind: "math" };
+  board: BoardStatic | { kind: "math" } | { kind: "vocab"; items: VocabItem[] } | { kind: "quiz"; title: string; items: QuizItem[] };
   poster: Poster;
   posterNote: string;
   sticky: [string, string, string];
@@ -40,21 +42,21 @@ export const CLASSROOMS: Record<string, Classroom> = {
   korean: {
     slug: "korean", subject: "국어", assignment: "국어 과제",
     link: ext(process.env.KOREAN_ASSIGNMENT_URL, "국어 과제 하러 가기"),
-    board: { kind: "static", label: "오늘의 낱말", headline: "사려 깊다", sub: "생각이 깊고 신중하다", line: "읽고 · 쓰고 · 말하기" },
+    board: { kind: "vocab", items: VOCAB },
     poster: "hangul", posterNote: "바르고 고운 말", sticky: ["독후감", "제출", "D-5"],
     look: { hair: "#3b2b2b", style: "bob", top: "#e8a3a0" }, great: 90, ok: 70,
   },
   social: {
     slug: "social", subject: "사회", assignment: "사회 과제",
     link: ext(process.env.SOCIAL_ASSIGNMENT_URL, "사회 과제 하러 가기"),
-    board: { kind: "static", label: "오늘의 키워드", headline: "민주주의", sub: "국민이 주인인 정치 체제", line: "알고 · 비교하고 · 토론하기" },
+    board: { kind: "quiz", title: "오늘의 한국사 퀴즈", items: HISTORY_QUIZ },
     poster: "map", posterNote: "Think globally", sticky: ["발표", "수업", "D-4"],
     look: { hair: "#6b4a30", style: "pony", top: "#d8b25a" }, great: 90, ok: 70,
   },
   science: {
     slug: "science", subject: "과학", assignment: "과학 과제",
     link: ext(process.env.SCIENCE_ASSIGNMENT_URL, "과학 과제 하러 가기"),
-    board: { kind: "static", label: "오늘의 법칙", headline: "F = ma", sub: "힘 = 질량 × 가속도", line: "관찰 · 가설 · 실험" },
+    board: { kind: "quiz", title: "오늘의 물화생 퀴즈", items: SCIENCE_QUIZ },
     poster: "periodic", posterNote: "Observe!", sticky: ["실험", "보고서", "D-6"],
     look: { hair: "#2f4b8f", style: "bob", top: "#6aa6a0", coat: true, glasses: true }, great: 90, ok: 70,
   },

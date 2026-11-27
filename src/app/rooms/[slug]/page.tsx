@@ -9,6 +9,7 @@ import Header from "@/components/Header";
 import ClassroomScene from "@/components/ClassroomScene";
 import { classroomFor } from "@/lib/classrooms";
 import { MATH_FORMULAS } from "@/lib/math";
+import { VOCAB } from "@/lib/vocab";
 import { FormulaHtml } from "@/components/FormulaHtml";
 import { kstDayNumber } from "@/lib/mottos";
 import LibraryRoom from "@/components/LibraryRoom";
@@ -176,6 +177,26 @@ export default async function RoomPage({ params }: { params: Promise<{ slug: str
         <p className="muted">{room.desc}</p>
         {classroom && (
           <TeacherChat name={user.name} teacher={`${classroom.subject} 선생님`} roomName={room.name} assignment={classroom.assignment} link={classroom.link} great={classroom.great} ok={classroom.ok} />
+        )}
+        {slug === "korean" && (
+          <details className="card">
+            <summary><strong>칠판에 나오는 어휘 전체 보기</strong> <span className="muted">({VOCAB.length}개)</span></summary>
+            <ul className="formulas">
+              {VOCAB.map((v) => (
+                <li key={v.word}><strong>{v.word}</strong> <span className="muted">{v.hanja}</span><br />{v.meaning}</li>
+              ))}
+            </ul>
+          </details>
+        )}
+        {classroom?.board.kind === "quiz" && (
+          <details className="card">
+            <summary><strong>칠판에 나오는 퀴즈 전체 보기</strong> <span className="muted">({classroom.board.items.length}문제 · 정답 포함)</span></summary>
+            <ul className="formulas">
+              {classroom.board.items.map((q) => (
+                <li key={q.q}><span className="muted">{q.tag}</span><br /><FormulaHtml src={q.q} /><br /><span className="muted">정답:</span> <strong><FormulaHtml src={q.a} /></strong></li>
+              ))}
+            </ul>
+          </details>
         )}
         {slug === "math" && (
           <details className="card">
