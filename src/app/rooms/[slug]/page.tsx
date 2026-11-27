@@ -176,7 +176,7 @@ export default async function RoomPage({ params }: { params: Promise<{ slug: str
         <h1>{room.icon} {room.name}</h1>
         <p className="muted">{room.desc}</p>
         {classroom && (
-          <TeacherChat name={user.name} teacher={`${classroom.subject} 선생님`} roomName={room.name} assignment={classroom.assignment} link={classroom.link} great={classroom.great} ok={classroom.ok} />
+          <TeacherChat name={user.name} mode={classroom.check} subject={classroom.subject} teacher={`${classroom.subject} 선생님`} roomName={room.name} assignment={classroom.assignment} link={classroom.link} great={classroom.great} ok={classroom.ok} />
         )}
         {slug === "korean" && (
           <details className="card">

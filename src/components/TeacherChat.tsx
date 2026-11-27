@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { useState } from "react";
 
-type Step = "ask" | "notdone" | "score" | "result";
+type Step = "ask" | "notdone" | "score" | "result" | "done";
 type Props = {
   name: string;
+  mode: "score" | "lesson"; // score: 과제 점수 / lesson: 오늘 수업을 들었는지
+  subject: string; // "사회"
   teacher: string; // "영어 선생님"
   roomName: string; // "영어관"
   assignment: string; // "클래스카드" · "수학 과제"
@@ -14,7 +16,7 @@ type Props = {
   ok: number;
 };
 
-export default function TeacherChat({ name, teacher, roomName, assignment, link, great, ok }: Props) {
+export default function TeacherChat({ name, mode, subject, teacher, roomName, assignment, link, great, ok }: Props) {
   const [step, setStep] = useState<Step>("ask");
   const [input, setInput] = useState("");
   const [score, setScore] = useState<number | null>(null);
@@ -39,6 +41,49 @@ export default function TeacherChat({ name, teacher, roomName, assignment, link,
     setStep("result");
   }
   const reset = () => { setStep("ask"); setInput(""); setScore(null); setError(""); };
+
+  if (mode === "lesson") {
+    return (
+      <section className="tchat card" aria-label={`${teacher}과 대화`}>
+        <div className="tchat-who">
+          <span className="tchat-avatar" aria-hidden="true">👩‍🏫</span>
+          <strong>{teacher}</strong>
+        </div>
+        <div className="tchat-bubble" aria-live="polite">
+          {step === "ask" && (
+            <>
+              <p>{name}님, 안녕하세요! {roomName}에 잘 왔어요.</p>
+              <p><b>오늘 {subject} 수업 들었어요?</b></p>
+            </>
+          )}
+          {step === "notdone" && (
+            <>
+              <p>아직이에요? 그럼 <b>지금 바로 EBSi</b>에서 {subject} 수업부터 들으세요.</p>
+              <p>다 듣고 나면 돌아와서 알려 주세요.</p>
+            </>
+          )}
+          {step === "done" && (
+            <p><b>잘했어요!</b> 들은 내용은 칠판 퀴즈로 한 번 복습해 보세요.</p>
+          )}
+        </div>
+        <div className="tchat-actions">
+          {step === "ask" && (
+            <>
+              <button type="button" onClick={() => setStep("done")}>들었어요</button>
+              <button type="button" className="ghost" onClick={() => setStep("notdone")}>아직 안 들었어요</button>
+            </>
+          )}
+          {step === "notdone" && (
+            <>
+              {linkBtn(link.label)}
+              <button type="button" className="ghost" onClick={() => setStep("done")}>다 듣고 왔어요</button>
+            </>
+          )}
+          {step === "done" && <button type="button" className="ghost" onClick={reset}>처음부터 다시</button>}
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="tchat card" aria-label={`${teacher}과 대화`}>
