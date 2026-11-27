@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import type { InterviewFile } from "@/lib/interview";
 
-const PRESETS = [5, 10, 15];
+const PRESETS = [1, 2, 3];
 const FILE_COLORS = ["#5b7fbf", "#6aa6a0", "#9a9078"];
 const CX = [290, 480, 670];
 
@@ -21,8 +21,8 @@ function Chip({ x, y, w, label, active, onClick, aria, id }: { x: number; y: num
 }
 
 function Timer() {
-  const [minutes, setMinutes] = useState(10);
-  const [left, setLeft] = useState(600);
+  const [minutes, setMinutes] = useState(3);
+  const [left, setLeft] = useState(180);
   const [running, setRunning] = useState(false);
 
   useEffect(() => {
